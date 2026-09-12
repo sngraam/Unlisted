@@ -25,6 +25,12 @@ npm install
 npm run dev
 ```
 
+### Create Env Files
+```bash
+/backend/.env
+/frontend/.env.local
+```
+
 ### Service URLs
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8000
