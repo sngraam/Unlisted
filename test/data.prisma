@@ -1,0 +1,194 @@
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector"), uuidOssp(map: "uuid-ossp")]
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+enum UserAccountType {
+  INDIVIDUAL @map("individual")
+  AGENCY     @map("agency")
+}
+
+enum MarketplacePlatform {
+  AMAZON   @map("amazon")
+  FLIPKART @map("flipkart")
+}
+
+enum TaskStatus {
+  QUEUED         @map("queued")
+  PROCESSING     @map("processing")
+  COMPLETED      @map("completed")
+  FAILED         @map("failed")
+  REVIEW_PENDING @map("review_pending")
+}
+
+enum PublishingRoute {
+  FLAT_FILE_CSV @map("flat_file_csv")
+  DIRECT_API    @map("direct_api")
+}
+
+
+// PHASE 1
+
+model User {
+  id            String          @id @default(uuid()) @db.Uuid
+  email         String          @unique @db.VarChar(255)
+  fullName      String?         @map("full_name") @db.VarChar(255)
+  authProvider  String          @default("google") @map("auth_provider") @db.VarChar(50)
+  accountType   UserAccountType @default(INDIVIDUAL) @map("account_type")
+  createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  brands        Brand[]
+  approvedJobs  PublishJob[]    @relation("ApprovedByUser")
+
+  @@map("users")
+}
+
+model Brand {
+  id              String                          @id @default(uuid()) @db.Uuid
+  userId          String                          @map("user_id") @db.Uuid
+  brandName       String                          @map("brand_name") @db.VarChar(255)
+  toneOfVoice     String                          @default("Professional") @map("tone_of_voice") @db.VarChar(100)
+  bannedWords     String[]                        @map("banned_words")
+  glossary        Json                            @default("{}")
+  brandEmbedding  Unsupported("vector(1536)")?    @map("brand_embedding") // pgvector for RAG
+  createdAt       DateTime                        @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  user            User                            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  integrations    MarketplaceIntegration[]
+  products        ProductSku[]
+
+  @@map("brands")
+}
+
+model MarketplaceIntegration {
+  id             String              @id @default(uuid()) @db.Uuid
+  brandId        String              @map("brand_id") @db.Uuid
+  platform       MarketplacePlatform
+  sellerId       String              @map("seller_id") @db.VarChar(255)
+  refreshToken   String              @map("refresh_token") @db.Text
+  accessToken    String?             @map("access_token") @db.Text
+  tokenExpiresAt DateTime?           @map("token_expires_at") @db.Timestamptz
+  isActive       Boolean             @default(true) @map("is_active")
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  brand          Brand               @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@map("marketplace_integrations")
+}
+
+// PHASE 2
+
+model ProductSku {
+  id            String             @id @default(uuid()) @db.Uuid
+  brandId       String             @map("brand_id") @db.Uuid
+  skuCode       String             @map("sku_code") @db.VarChar(100)
+  rawInputText  String?            @map("raw_input_text") @db.Text
+  rawImagesUrls String[]           @default([]) @map("raw_images_urls")
+  canonicalData Json               @default("{}") @map("canonical_data") // Step 3 Extracted JSON
+  currentStatus TaskStatus         @default(QUEUED) @map("current_status")
+  createdAt     DateTime           @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  brand         Brand              @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  tasks         GenerationTask[]
+  listings      GeneratedListing[]
+
+  @@map("products_sku")
+}
+
+model GenerationTask {
+  id           String     @id @default(uuid()) @db.Uuid
+  productId    String     @map("product_id") @db.Uuid
+  taskQueueId  String?    @map("task_queue_id") @db.VarChar(255) // Redis/ARQ Task ID
+  retryCount   Int        @default(0) @map("retry_count")
+  status       TaskStatus @default(QUEUED)
+  errorLog     String?    @map("error_log") @db.Text
+  startedAt    DateTime?  @map("started_at") @db.Timestamptz
+  completedAt  DateTime?  @map("completed_at") @db.Timestamptz
+
+  // Relations
+  product      ProductSku @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("generation_tasks")
+}
+
+model GeneratedListing {
+  id                 String          @id @default(uuid()) @db.Uuid
+  productId          String          @map("product_id") @db.Uuid
+  
+  // Agent 1: Catalog Agent Output
+  title              String?         @db.VarChar(500)
+  bulletPoints       Json            @default("[]") @map("bullet_points")
+  productDescription String?         @map("product_description") @db.Text
+  
+  // Agent 2: Keyword Agent Output
+  searchTerms        String[]        @default([]) @map("search_terms")
+  targetKeywords     Json            @default("[]") @map("target_keywords")
+  
+  // Agent 3: A+ Content Agent Output
+  aplusContentLayout Json            @default("{}") @map("aplus_content_layout")
+  
+  // Validation Gate
+  isValidated        Boolean         @default(false) @map("is_validated")
+  validationScore    Int             @default(0) @map("validation_score")
+  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  product            ProductSku      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  validationLogs     ValidationLog[]
+  publishJobs        PublishJob[]
+
+  @@map("generated_listings")
+}
+
+model ValidationLog {
+  id               String           @id @default(uuid()) @db.Uuid
+  listingId        String           @map("listing_id") @db.Uuid
+  iterationNumber  Int              @default(1) @map("iteration_number")
+  failedRules      Json             @default("[]") @map("failed_rules")
+  autoFixApplied   Boolean          @default(false) @map("auto_fix_applied")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  listing          GeneratedListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@map("validation_logs")
+}
+
+// ==========================================
+// PHASE 3: DASHBOARD & PUBLISHING
+// ==========================================
+
+model PublishJob {
+  id                      String           @id @default(uuid()) @db.Uuid
+  listingId               String           @map("listing_id") @db.Uuid
+  route                   PublishingRoute
+  
+  // Route A: Flat File CSV
+  generatedCsvUrl         String?          @map("generated_csv_url") @db.Text
+  
+  // Route B: Direct SP-API
+  marketplaceSubmissionId String?          @map("marketplace_submission_id") @db.VarChar(255)
+  publishStatus           String           @default("pending") @map("publish_status") @db.VarChar(50)
+  responsePayload         Json             @default("{}") @map("response_payload")
+  
+  humanApproved           Boolean          @default(false) @map("human_approved")
+  approvedById            String?          @map("approved_by_id") @db.Uuid
+  publishedAt             DateTime?        @map("published_at") @db.Timestamptz
+
+  // Relations
+  listing                 GeneratedListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  approvedBy              User?            @relation("ApprovedByUser", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  @@map("publish_jobs")
+}
