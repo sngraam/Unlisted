@@ -1,0 +1,627 @@
+// Canonical application schema. The original test/data.prisma remains a historical draft.
+// Prisma belongs to the Node server layer; never import its generated client into browser components.
+// Tenant-scoped composite foreign keys prevent mixing records from different workspaces.
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// === Identity and access ===
+enum AccountType {
+  INDIVIDUAL
+  AGENCY
+  FREELANCE
+}
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  EDITOR
+  REVIEWER
+  PUBLISHER
+  VIEWER
+}
+
+enum IdentityProvider {
+  GOOGLE
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+// === Marketplace and workflow states ===
+enum Marketplace {
+  AMAZON
+  FLIPKART
+}
+
+enum ConnectionStatus {
+  NOT_CONNECTED
+  CONNECTED
+  EXPIRED
+  REVOKED
+  ERROR
+}
+
+enum ListingStatus {
+  DRAFT
+  REVIEW_PENDING
+  READY
+  ARCHIVED
+}
+
+enum PublicationStatus {
+  NEVER_PUBLISHED
+  PENDING
+  LIVE
+  REJECTED
+  INACTIVE
+}
+
+enum JobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ValidationStatus {
+  PENDING
+  PASSED
+  FAILED
+  ERROR
+}
+
+enum PublishRoute {
+  FLAT_FILE_CSV
+  DIRECT_API
+}
+
+enum PublishStatus {
+  QUEUED
+  PROCESSING
+  EXPORT_READY
+  SUBMITTED
+  PUBLISHED
+  FAILED
+  CANCELLED
+}
+
+enum AssetKind {
+  IMAGE
+  VIDEO
+  CSV
+  DOCUMENT
+}
+
+enum MediaRole {
+  MAIN_IMAGE
+  GALLERY_IMAGE
+  SWATCH_IMAGE
+  VIDEO
+}
+
+// A person may join multiple teams. Roles are membership data, not global user properties.
+model User {
+  id              String      @id @default(uuid()) @db.Uuid
+  email           String      @unique @db.VarChar(320)
+  displayName     String      @map("display_name") @db.VarChar(255)
+  passwordHash    String?     @map("password_hash") @db.Text
+  accountType     AccountType @default(INDIVIDUAL) @map("account_type")
+  emailVerifiedAt DateTime?   @map("email_verified_at") @db.Timestamptz(3)
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt       DateTime?   @map("deleted_at") @db.Timestamptz(3)
+
+  identities          AuthIdentity[]
+  memberships         TeamMembership[]
+  createdTeams        Team[]            @relation("TeamCreator")
+  sentInvitations     Invitation[]      @relation("InvitationSender")
+  acceptedInvitations Invitation[]      @relation("InvitationRecipient")
+  authoredRevisions   ListingRevision[]
+  approvals           ListingApproval[]
+  generationJobs      GenerationJob[]
+  importBatches       ImportBatch[]
+  uploadedAssets      MediaAsset[]
+  sessions            Session[]
+
+  @@map("users")
+}
+
+// Opaque browser sessions. Store the token hash only; logout deletes the server record.
+model Session {
+  id        String   @id @default(uuid()) @db.Uuid
+  tokenHash String   @unique @map("token_hash") @db.VarChar(64)
+  userId    String   @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+// Provider subject is the stable OAuth identity; do not use a display email as Google's subject.
+model AuthIdentity {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  provider  IdentityProvider
+  subject   String           @db.VarChar(255)
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, subject])
+  @@index([userId])
+  @@map("auth_identities")
+}
+
+model Team {
+  id          String           @id @default(uuid()) @db.Uuid
+  name        String           @db.VarChar(255)
+  createdById String           @map("created_by_id") @db.Uuid
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  archivedAt  DateTime?        @map("archived_at") @db.Timestamptz(3)
+  createdBy   User             @relation("TeamCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  memberships TeamMembership[]
+  folders     Folder[]
+  workspaces  Workspace[]
+  invitations Invitation[]
+
+  @@index([createdById])
+  @@map("teams")
+}
+
+model TeamMembership {
+  teamId    String   @map("team_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  role      TeamRole @default(VIEWER)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, userId])
+  @@index([userId])
+  @@map("team_memberships")
+}
+
+// Invitations grant a team role. Store only a hash of the one-time token.
+model Invitation {
+  id           String           @id @default(uuid()) @db.Uuid
+  teamId       String           @map("team_id") @db.Uuid
+  inviterId    String           @map("inviter_id") @db.Uuid
+  email        String           @db.VarChar(320)
+  role         TeamRole         @default(EDITOR)
+  tokenHash    String           @unique @map("token_hash") @db.VarChar(128)
+  status       InvitationStatus @default(PENDING)
+  expiresAt    DateTime         @map("expires_at") @db.Timestamptz(3)
+  acceptedAt   DateTime?        @map("accepted_at") @db.Timestamptz(3)
+  acceptedById String?          @map("accepted_by_id") @db.Uuid
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  team         Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  inviter      User             @relation("InvitationSender", fields: [inviterId], references: [id], onDelete: Restrict)
+  acceptedBy   User?            @relation("InvitationRecipient", fields: [acceptedById], references: [id], onDelete: SetNull)
+
+  @@index([teamId, email, status])
+  @@index([inviterId])
+  @@index([acceptedById])
+  @@index([status, expiresAt])
+  @@map("invitations")
+}
+
+// A folder organizes workspaces inside one team; it cannot attach another team's workspace.
+model Folder {
+  id         String      @id @default(uuid()) @db.Uuid
+  teamId     String      @map("team_id") @db.Uuid
+  name       String      @db.VarChar(255)
+  createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  team       Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  workspaces Workspace[]
+
+  @@unique([id, teamId])
+  @@unique([teamId, name])
+  @@map("folders")
+}
+
+model Workspace {
+  id            String                  @id @default(uuid()) @db.Uuid
+  teamId        String                  @map("team_id") @db.Uuid
+  folderId      String?                 @map("folder_id") @db.Uuid
+  name          String                  @db.VarChar(255)
+  createdAt     DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
+  archivedAt    DateTime?               @map("archived_at") @db.Timestamptz(3)
+  team          Team                    @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  folder        Folder?                 @relation(fields: [folderId, teamId], references: [id, teamId], onDelete: Restrict, onUpdate: NoAction)
+  brandContext  BrandContext?
+  connections   MarketplaceConnection[]
+  products      Product[]
+  assets        MediaAsset[]
+  importBatches ImportBatch[]
+
+  @@index([teamId, archivedAt])
+  @@index([folderId, teamId])
+  @@map("workspaces")
+}
+
+// One brand per workspace matches the current UI; an agency creates a workspace per client brand.
+// pgvector requires CREATE EXTENSION vector in the initial migration. Dimension retained from the draft.
+model BrandContext {
+  id             String                       @id @default(uuid()) @db.Uuid
+  workspaceId    String                       @unique @map("workspace_id") @db.Uuid
+  name           String                       @db.VarChar(255)
+  tone           String                       @default("Professional & clear") @db.VarChar(120)
+  glossary       Json                         @default("{}") @db.JsonB
+  bannedTerms    String[]                     @default([]) @map("banned_terms")
+  painPoints     String?                      @map("pain_points") @db.Text
+  embedding      Unsupported("vector(1536)")?
+  embeddingModel String?                      @map("embedding_model") @db.VarChar(120)
+  embeddedAt     DateTime?                    @map("embedded_at") @db.Timestamptz(3)
+  createdAt      DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime                     @updatedAt @map("updated_at") @db.Timestamptz(3)
+  workspace      Workspace                    @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  products       Product[]
+
+  @@unique([id, workspaceId])
+  @@map("brand_contexts")
+}
+
+// Encrypted strings are envelopes from the eventual secrets service, never plaintext OAuth tokens.
+model MarketplaceConnection {
+  id                    String               @id @default(uuid()) @db.Uuid
+  workspaceId           String               @map("workspace_id") @db.Uuid
+  platform              Marketplace
+  sellerId              String               @map("seller_id") @db.VarChar(255)
+  label                 String?              @db.VarChar(255)
+  status                ConnectionStatus     @default(NOT_CONNECTED)
+  encryptedAccessToken  String?              @map("encrypted_access_token") @db.Text
+  encryptedRefreshToken String?              @map("encrypted_refresh_token") @db.Text
+  tokenExpiresAt        DateTime?            @map("token_expires_at") @db.Timestamptz(3)
+  scopes                String[]             @default([])
+  createdAt             DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  workspace             Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  listings              MarketplaceListing[]
+  publishJobs           PublishJob[]
+
+  @@unique([workspaceId, platform, sellerId])
+  @@unique([id, workspaceId, platform])
+  @@map("marketplace_connections")
+}
+
+// Merchant facts live on the parent product. Generated/approved copy lives in listing revisions.
+model Product {
+  id                  String           @id @default(uuid()) @db.Uuid
+  workspaceId         String           @map("workspace_id") @db.Uuid
+  brandContextId      String           @map("brand_context_id") @db.Uuid
+  importBatchId       String?          @map("import_batch_id") @db.Uuid
+  name                String           @db.VarChar(500)
+  categoryPath        String?          @map("category_path") @db.Text
+  rawInputText        String?          @map("raw_input_text") @db.Text
+  canonicalData       Json             @default("{}") @map("canonical_data") @db.JsonB
+  attributes          Json             @default("{}") @db.JsonB
+  descriptionTemplate String?          @map("description_template") @db.Text
+  createdAt           DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt           DateTime?        @map("deleted_at") @db.Timestamptz(3)
+  workspace           Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  brandContext        BrandContext     @relation(fields: [brandContextId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  importBatch         ImportBatch?     @relation(fields: [importBatchId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  variants            ProductVariant[]
+  media               ProductMedia[]
+
+  @@unique([id, workspaceId])
+  @@index([workspaceId, deletedAt, createdAt])
+  @@index([brandContextId, workspaceId])
+  @@index([importBatchId, workspaceId])
+  @@map("products")
+}
+
+// A sellable variant is marketplace-independent. INR amounts use exact decimals, not floats.
+// Apparel refiners (fit/fabric/pattern/sleeve/neckline) belong in category-validated attributes JSON.
+model ProductVariant {
+  id                  String               @id @default(uuid()) @db.Uuid
+  productId           String               @map("product_id") @db.Uuid
+  workspaceId         String               @map("workspace_id") @db.Uuid
+  sellerSku           String               @map("seller_sku") @db.VarChar(100)
+  name                String?              @db.VarChar(255)
+  color               String?              @db.VarChar(120)
+  size                String?              @db.VarChar(120)
+  attributes          Json                 @default("{}") @db.JsonB
+  currency            String               @default("INR") @db.Char(3)
+  mrp                 Decimal              @default(0) @db.Decimal(14, 2)
+  sellingPrice        Decimal              @default(0) @map("selling_price") @db.Decimal(14, 2)
+  stock               Int                  @default(0)
+  hsnCode             String?              @map("hsn_code") @db.VarChar(16)
+  countryOfOrigin     String?              @map("country_of_origin") @db.VarChar(120)
+  weightKg            Decimal?             @map("weight_kg") @db.Decimal(10, 3)
+  lengthCm            Decimal?             @map("length_cm") @db.Decimal(10, 3)
+  breadthCm           Decimal?             @map("breadth_cm") @db.Decimal(10, 3)
+  heightCm            Decimal?             @map("height_cm") @db.Decimal(10, 3)
+  taxCode             String?              @map("tax_code") @db.VarChar(80)
+  manufacturerDetails String?              @map("manufacturer_details") @db.Text
+  packerDetails       String?              @map("packer_details") @db.Text
+  importerDetails     String?              @map("importer_details") @db.Text
+  createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt           DateTime?            @map("deleted_at") @db.Timestamptz(3)
+  product             Product              @relation(fields: [productId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  listings            MarketplaceListing[]
+  media               ProductMedia[]
+
+  @@unique([workspaceId, sellerSku])
+  @@unique([id, workspaceId])
+  @@unique([id, productId, workspaceId])
+  @@index([productId, workspaceId, deletedAt])
+  @@map("product_variants")
+}
+
+// CSV-first onboarding may create a listing before connecting a seller account.
+// ASIN/FSN and publication state belong to this channel, not the universal product variant.
+model MarketplaceListing {
+  id                String                 @id @default(uuid()) @db.Uuid
+  workspaceId       String                 @map("workspace_id") @db.Uuid
+  variantId         String                 @map("variant_id") @db.Uuid
+  connectionId      String?                @map("connection_id") @db.Uuid
+  platform          Marketplace
+  marketplaceRegion String                 @default("IN") @map("marketplace_region") @db.VarChar(40)
+  externalId        String?                @map("external_id") @db.VarChar(255)
+  productUrl        String?                @map("product_url") @db.Text
+  status            ListingStatus          @default(DRAFT)
+  publicationStatus PublicationStatus      @default(NEVER_PUBLISHED) @map("publication_status")
+  createdAt         DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime               @updatedAt @map("updated_at") @db.Timestamptz(3)
+  variant           ProductVariant         @relation(fields: [variantId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  connection        MarketplaceConnection? @relation(fields: [connectionId, workspaceId, platform], references: [id, workspaceId, platform], onDelete: Restrict, onUpdate: NoAction)
+  revisions         ListingRevision[]
+  generationJobs    GenerationJob[]
+  publishJobs       PublishJob[]
+
+  @@unique([id, workspaceId, platform])
+  @@unique([variantId, platform, marketplaceRegion])
+  @@unique([id, workspaceId])
+  @@index([workspaceId, status, updatedAt])
+  @@index([workspaceId, platform, publicationStatus])
+  @@index([connectionId, workspaceId, platform])
+  @@index([variantId, workspaceId])
+  @@map("marketplace_listings")
+}
+
+// Append a new revision for every saved edit. The highest revision number is the current draft.
+// Never rewrite a validated/approved revision. Capture merchant facts to make review reproducible.
+model ListingRevision {
+  id                   String              @id @default(uuid()) @db.Uuid
+  listingId            String              @map("listing_id") @db.Uuid
+  workspaceId          String              @map("workspace_id") @db.Uuid
+  number               Int
+  createdById          String?             @map("created_by_id") @db.Uuid
+  generationJobId      String?             @map("generation_job_id") @db.Uuid
+  title                String              @default("") @db.Text
+  description          String              @default("") @db.Text
+  bulletPoints         String[]            @default([]) @map("bullet_points")
+  searchKeywords       String[]            @default([]) @map("search_keywords")
+  targetKeywords       Json                @default("[]") @map("target_keywords") @db.JsonB
+  aplusContent         Json                @default("{}") @map("aplus_content") @db.JsonB
+  merchantSnapshot     Json                @default("{}") @map("merchant_snapshot") @db.JsonB
+  brandContextSnapshot Json                @default("{}") @map("brand_context_snapshot") @db.JsonB
+  generationMetadata   Json                @default("{}") @map("generation_metadata") @db.JsonB
+  createdAt            DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  listing              MarketplaceListing  @relation(fields: [listingId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  createdBy            User?               @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  generationJob        GenerationJob?      @relation(fields: [generationJobId, listingId, workspaceId], references: [id, listingId, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  payload              MarketplacePayload?
+  validations          ValidationRun[]
+  approvals            ListingApproval[]
+  publishJobs          PublishJob[]
+
+  @@unique([listingId, number])
+  @@unique([id, listingId, workspaceId])
+  @@unique([id, workspaceId])
+  @@index([listingId, workspaceId])
+  @@index([createdById])
+  @@index([generationJobId, listingId, workspaceId])
+  @@map("listing_revisions")
+}
+
+// Platform's long-tail attributes are versioned with the listing revision, avoiding a circular FK.
+model MarketplacePayload {
+  id              String          @id @default(uuid()) @db.Uuid
+  revisionId      String          @unique @map("revision_id") @db.Uuid
+  workspaceId     String          @map("workspace_id") @db.Uuid
+  categoryCode    String?         @map("category_code") @db.VarChar(255)
+  templateVersion String?         @map("template_version") @db.VarChar(120)
+  rawAttributes   Json            @default("{}") @map("raw_attributes") @db.JsonB
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  revision        ListingRevision @relation(fields: [revisionId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([revisionId, workspaceId])
+  @@map("marketplace_payloads")
+}
+
+model GenerationJob {
+  id            String             @id @default(uuid()) @db.Uuid
+  listingId     String             @map("listing_id") @db.Uuid
+  workspaceId   String             @map("workspace_id") @db.Uuid
+  requestedById String?            @map("requested_by_id") @db.Uuid
+  queueJobId    String?            @unique @map("queue_job_id") @db.VarChar(255)
+  status        JobStatus          @default(QUEUED)
+  attempts      Int                @default(0)
+  maxAttempts   Int                @default(3) @map("max_attempts")
+  inputSnapshot Json               @default("{}") @map("input_snapshot") @db.JsonB
+  errorReport   Json?              @map("error_report") @db.JsonB
+  createdAt     DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  startedAt     DateTime?          @map("started_at") @db.Timestamptz(3)
+  completedAt   DateTime?          @map("completed_at") @db.Timestamptz(3)
+  listing       MarketplaceListing @relation(fields: [listingId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  requestedBy   User?              @relation(fields: [requestedById], references: [id], onDelete: SetNull)
+  revisions     ListingRevision[]
+
+  @@unique([id, listingId, workspaceId])
+  @@index([listingId, workspaceId])
+  @@index([workspaceId, status, createdAt])
+  @@index([requestedById])
+  @@map("generation_jobs")
+}
+
+// One revision can be audited repeatedly with different ruleset versions.
+model ValidationRun {
+  id             String            @id @default(uuid()) @db.Uuid
+  revisionId     String            @map("revision_id") @db.Uuid
+  workspaceId    String            @map("workspace_id") @db.Uuid
+  status         ValidationStatus  @default(PENDING)
+  rulesetVersion String            @map("ruleset_version") @db.VarChar(120)
+  score          Int?
+  errors         Json              @default("[]") @db.JsonB
+  warnings       Json              @default("[]") @db.JsonB
+  autoFixApplied Boolean           @default(false) @map("auto_fix_applied")
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  completedAt    DateTime?         @map("completed_at") @db.Timestamptz(3)
+  revision       ListingRevision   @relation(fields: [revisionId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  approvals      ListingApproval[]
+
+  @@unique([id, revisionId, workspaceId])
+  @@index([revisionId, workspaceId, createdAt])
+  @@map("validation_runs")
+}
+
+// Approval references an audit of the SAME revision. Service must check PASSED and reviewer permissions.
+model ListingApproval {
+  id               String          @id @default(uuid()) @db.Uuid
+  revisionId       String          @map("revision_id") @db.Uuid
+  workspaceId      String          @map("workspace_id") @db.Uuid
+  validationRunId  String          @map("validation_run_id") @db.Uuid
+  approvedById     String          @map("approved_by_id") @db.Uuid
+  approvedAt       DateTime        @default(now()) @map("approved_at") @db.Timestamptz(3)
+  revokedAt        DateTime?       @map("revoked_at") @db.Timestamptz(3)
+  revocationReason String?         @map("revocation_reason") @db.Text
+  revision         ListingRevision @relation(fields: [revisionId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  validationRun    ValidationRun   @relation(fields: [validationRunId, revisionId, workspaceId], references: [id, revisionId, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  approvedBy       User            @relation(fields: [approvedById], references: [id], onDelete: Restrict)
+  publishJobs      PublishJob[]
+
+  @@unique([id, revisionId, workspaceId])
+  @@index([revisionId, workspaceId])
+  @@index([validationRunId, revisionId, workspaceId])
+  @@index([approvedById])
+  @@map("listing_approvals")
+}
+
+// Every export/submission requires an approval for its exact revision.
+// EXPORT_READY is distinct from SUBMITTED and confirmed PUBLISHED.
+model PublishJob {
+  id              String                 @id @default(uuid()) @db.Uuid
+  listingId       String                 @map("listing_id") @db.Uuid
+  platform        Marketplace
+  connectionId    String?                @map("connection_id") @db.Uuid
+  revisionId      String                 @map("revision_id") @db.Uuid
+  workspaceId     String                 @map("workspace_id") @db.Uuid
+  approvalId      String                 @map("approval_id") @db.Uuid
+  route           PublishRoute
+  status          PublishStatus          @default(QUEUED)
+  idempotencyKey  String                 @unique @map("idempotency_key") @db.VarChar(255)
+  submissionId    String?                @map("submission_id") @db.VarChar(255)
+  exportAssetId   String?                @map("export_asset_id") @db.Uuid
+  targetSnapshot  Json                   @default("{}") @map("target_snapshot") @db.JsonB
+  responsePayload Json                   @default("{}") @map("response_payload") @db.JsonB
+  errorReport     Json?                  @map("error_report") @db.JsonB
+  attempts        Int                    @default(0)
+  createdAt       DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  startedAt       DateTime?              @map("started_at") @db.Timestamptz(3)
+  submittedAt     DateTime?              @map("submitted_at") @db.Timestamptz(3)
+  completedAt     DateTime?              @map("completed_at") @db.Timestamptz(3)
+  publishedAt     DateTime?              @map("published_at") @db.Timestamptz(3)
+  revision        ListingRevision        @relation(fields: [revisionId, listingId, workspaceId], references: [id, listingId, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  listing         MarketplaceListing     @relation(fields: [listingId, workspaceId, platform], references: [id, workspaceId, platform], onDelete: Restrict, onUpdate: NoAction)
+  connection      MarketplaceConnection? @relation(fields: [connectionId, workspaceId, platform], references: [id, workspaceId, platform], onDelete: Restrict, onUpdate: NoAction)
+  approval        ListingApproval        @relation(fields: [approvalId, revisionId, workspaceId], references: [id, revisionId, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  exportAsset     MediaAsset?            @relation(fields: [exportAssetId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+
+  @@index([revisionId, listingId, workspaceId])
+  @@index([listingId, workspaceId, platform])
+  @@index([connectionId, workspaceId, platform])
+  @@index([approvalId, revisionId, workspaceId])
+  @@index([exportAssetId, workspaceId])
+  @@index([workspaceId, status, createdAt])
+  @@map("publish_jobs")
+}
+
+// Object storage metadata; public/signed URLs are derived at read time and are not durable keys.
+model MediaAsset {
+  id            String         @id @default(uuid()) @db.Uuid
+  workspaceId   String         @map("workspace_id") @db.Uuid
+  uploadedById  String?        @map("uploaded_by_id") @db.Uuid
+  kind          AssetKind
+  storageKey    String         @unique @map("storage_key") @db.Text
+  originalName  String         @map("original_name") @db.VarChar(255)
+  mimeType      String         @map("mime_type") @db.VarChar(120)
+  sizeBytes     BigInt         @map("size_bytes")
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  deletedAt     DateTime?      @map("deleted_at") @db.Timestamptz(3)
+  workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  uploadedBy    User?          @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  products      ProductMedia[]
+  importBatches ImportBatch[]
+  exportJobs    PublishJob[]
+
+  @@unique([id, workspaceId])
+  @@index([workspaceId, kind, createdAt])
+  @@index([uploadedById])
+  @@map("media_assets")
+}
+
+// Gallery entries can belong to the parent or one of its variants, always within the same workspace.
+model ProductMedia {
+  id          String          @id @default(uuid()) @db.Uuid
+  productId   String          @map("product_id") @db.Uuid
+  workspaceId String          @map("workspace_id") @db.Uuid
+  variantId   String?         @map("variant_id") @db.Uuid
+  assetId     String          @map("asset_id") @db.Uuid
+  role        MediaRole       @default(GALLERY_IMAGE)
+  position    Int             @default(0)
+  altText     String?         @map("alt_text") @db.VarChar(500)
+  product     Product         @relation(fields: [productId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  variant     ProductVariant? @relation(fields: [variantId, productId, workspaceId], references: [id, productId, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  asset       MediaAsset      @relation(fields: [assetId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+
+  @@index([productId, workspaceId, position])
+  @@index([variantId, productId, workspaceId])
+  @@index([assetId, workspaceId])
+  @@map("product_media")
+}
+
+model ImportBatch {
+  id            String     @id @default(uuid()) @db.Uuid
+  workspaceId   String     @map("workspace_id") @db.Uuid
+  sourceAssetId String     @map("source_asset_id") @db.Uuid
+  requestedById String?    @map("requested_by_id") @db.Uuid
+  status        JobStatus  @default(QUEUED)
+  queueJobId    String?    @unique @map("queue_job_id") @db.VarChar(255)
+  totalRows     Int        @default(0) @map("total_rows")
+  importedRows  Int        @default(0) @map("imported_rows")
+  failedRows    Int        @default(0) @map("failed_rows")
+  errorReport   Json       @default("[]") @map("error_report") @db.JsonB
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  completedAt   DateTime?  @map("completed_at") @db.Timestamptz(3)
+  workspace     Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  sourceAsset   MediaAsset @relation(fields: [sourceAssetId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  requestedBy   User?      @relation(fields: [requestedById], references: [id], onDelete: SetNull)
+  products      Product[]
+
+  @@unique([id, workspaceId])
+  @@index([workspaceId, status, createdAt])
+  @@index([sourceAssetId, workspaceId])
+  @@index([requestedById])
+  @@map("import_batches")
+}

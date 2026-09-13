@@ -1,5 +1,15 @@
 
+
+> **2026-09-13 local database update:** Sign-in and workspace persistence now use local PostgreSQL + Prisma. See [test/README.md](test/README.md) for startup, seed data and account details. Earlier prototype-only sections below are historical where they conflict with this update.
+# Project status and build roadmap
+
+The frontend is a working browser-local prototype, and the canonical Prisma schema plus initial migration are implemented. Database-backed APIs, authentication, workers, AI generation and marketplace integrations remain to be built.
+
+Read [`TASK.md`](TASK.md) for the ordered MVP implementation tasks, dependencies and release acceptance criteria. Read [`Memory.md`](Memory.md) for the current handoff and historical decisions, [`frontend/README.md`](frontend/README.md) for the UI edit guide, and [`frontend/prisma/README.md`](frontend/prisma/README.md) for the database design. The directory tree below includes intended scaffolds, not only finished features.
+
 # Run
+
+For simple explanations of category-specific requirements and listing APIs, read [`amazon_listing.md`](amazon_listing.md) and [`filpcard_listing.md`](filpcard_listing.md). They distinguish verified API behavior from examples and integration work still needed.
 
 ## Running Frontend and Backend
 
@@ -194,3 +204,19 @@ frontend/
     └── sku.ts
 ```
 
+
+---
+
+# Prisma Database Schema
+
+The canonical PostgreSQL schema now lives in [`frontend/prisma/schema.prisma`](frontend/prisma/schema.prisma). It models teams/workspaces, brand context, products and variants, marketplace-specific listing revisions, validation, approval, publishing, and media/import jobs.
+
+Read [`frontend/prisma/README.md`](frontend/prisma/README.md) for the relationship diagram, frontend field mapping, constraints, and integration steps. `test/data.prisma` is retained as the original draft.
+
+```bash
+cd frontend
+npm run db:validate
+npm run db:generate
+```
+
+These commands need no running database. Configure a PostgreSQL database with pgvector and a server-only `DATABASE_URL` before applying migrations. The frontend remains a local demo until its API integration is implemented.

@@ -1,10 +1,12 @@
 # Node / Next.js
 node_modules/
 .next/
+.next-build/
 out/
 build/
 dist/
 *.log
+*.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -25,7 +27,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# Ignore Python library output without hiding the frontend source directory.
+/lib/
 lib64/
 parts/
 sdist/
@@ -49,3 +52,10 @@ wheels/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Prisma Client is generated from the canonical schema.
+/frontend/generated/prisma/
+
+# Project-local PostgreSQL binaries, database cluster and private connection settings.
+/.local/
+/test/local-login.txt

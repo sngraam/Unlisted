@@ -1,0 +1,10 @@
+# Build from source; do not copy local credentials or platform-specific installed packages.
+node_modules
+.next
+.next-build
+generated/prisma
+.env
+.env.*
+!.env.example
+*.log
+*.tsbuildinfo

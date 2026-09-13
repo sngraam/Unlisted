@@ -1,0 +1,465 @@
+{
+  "version": 1,
+  "description": "Synthetic development catalog. Historical display statuses are fixture labels, never evidence of marketplace publication.",
+  "profile": {
+    "name": "Rajesh Sharma",
+    "email": "rajesh@example.com",
+    "type": "Agency",
+    "workspace": "Sharma Exports",
+    "team": "Catalog team"
+  },
+  "brand": {
+    "name": "Anokhi",
+    "tone": "Warm & authentic",
+    "glossary": "Anarkali, handcrafted, everyday elegance",
+    "bannedTerms": "100% guaranteed, best in the world, cure",
+    "painPoints": "Comfortable ethnic wear for everyday moments and special occasions."
+  },
+  "connections": [],
+  "products": [
+    {
+      "id": "1",
+      "sku": "SKU-KT-ANOK1",
+      "name": "Anokhi Pure Cotton Printed Anarkali Kurta (Blue)",
+      "brand": "Anokhi",
+      "category": "Ethnic Wear > Kurtas",
+      "marketplace": "Amazon",
+      "status": "Ready",
+      "score": 84,
+      "updatedAt": "2026-09-12T15:00:00.000Z",
+      "title": "Anokhi Women’s Pure Cotton Traditional Printed Anarkali Kurta Set with Dupatta (Navy Blue, Festive Edition)",
+      "description": "Bring a touch of everyday elegance to your wardrobe with this Anokhi printed Anarkali kurta. The flowing navy blue silhouette pairs a traditional floral print with the comfort of breathable cotton. Style it with the matching dupatta for a family gathering, a festive celebration, or a relaxed day out. Available in a range of sizes. Please check the size guide before ordering.",
+      "bullets": [
+        "Made from pure cotton for breathable comfort throughout the day.",
+        "Navy blue Anarkali silhouette with floral motifs and a matching dupatta.",
+        "Neatly finished seams and a flowing hem for comfortable everyday movement.",
+        "Refer to the garment size chart to find your preferred fit.",
+        "Gentle hand wash recommended. Wash dark colours separately."
+      ],
+      "keywords": "anarkali kurta, cotton kurta, ethnic wear, festive wear, printed kurta",
+      "rawText": "",
+      "variants": [
+        {
+          "id": "v0",
+          "sku": "SKU-KT-ANOK1",
+          "color": "Navy blue",
+          "size": "M",
+          "mrp": 2499,
+          "price": 1799,
+          "stock": 42
+        }
+      ],
+      "hsn": "6204",
+      "origin": "India",
+      "weight": 0.45,
+      "approved": false
+    },
+    {
+      "id": "2",
+      "sku": "SKU-EB-ADP14",
+      "name": "boAt Airdopes 141 Bluetooth Wireless Earbuds (Active Black)",
+      "brand": "boAt",
+      "category": "Electronics > Audio",
+      "marketplace": "Amazon",
+      "status": "Published",
+      "score": 96,
+      "updatedAt": "2026-09-12T14:00:00.000Z",
+      "title": "boAt Airdopes 141 Bluetooth Wireless Earbuds (Active Black)",
+      "description": "boAt Airdopes 141 Bluetooth Wireless Earbuds (Active Black). Review the product specifications and add verified details before publishing.",
+      "bullets": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "keywords": "boat, audio",
+      "rawText": "",
+      "variants": [
+        {
+          "id": "v1",
+          "sku": "SKU-EB-ADP14",
+          "color": "Default",
+          "size": "Standard",
+          "mrp": 1499,
+          "price": 999,
+          "stock": 45
+        }
+      ],
+      "hsn": "",
+      "origin": "India",
+      "weight": 0.45,
+      "approved": false
+    },
+    {
+      "id": "3",
+      "sku": "SKU-TP-HAL50",
+      "name": "Catch Organic Turmeric Powder (Haldi) – 500g",
+      "brand": "Catch",
+      "category": "Grocery > Spices",
+      "marketplace": "Flipkart",
+      "status": "Processing",
+      "score": 72,
+      "updatedAt": "2026-09-12T13:00:00.000Z",
+      "title": "Catch Organic Turmeric Powder (Haldi) – 500g",
+      "description": "Catch Organic Turmeric Powder (Haldi) – 500g. Review the product specifications and add verified details before publishing.",
+      "bullets": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "keywords": "catch, spices",
+      "rawText": "",
+      "variants": [
+        {
+          "id": "v2",
+          "sku": "SKU-TP-HAL50",
+          "color": "Default",
+          "size": "Standard",
+          "mrp": 1499,
+          "price": 999,
+          "stock": 48
+        }
+      ],
+      "hsn": "",
+      "origin": "India",
+      "weight": 0.45,
+      "approved": false
+    },
+    {
+      "id": "4",
+      "sku": "SKU-PC-IP15P",
+      "name": "Spigen Liquid Air Shockproof Case for iPhone 15 Pro",
+      "brand": "Spigen",
+      "category": "Accessories > Phone Cases",
+      "marketplace": "Amazon",
+      "status": "Published",
+      "score": 94,
+      "updatedAt": "2026-09-12T12:00:00.000Z",
+      "title": "Spigen Liquid Air Shockproof Case for iPhone 15 Pro",
+      "description": "Spigen Liquid Air Shockproof Case for iPhone 15 Pro. Review the product specifications and add verified details before publishing.",
+      "bullets": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "keywords": "spigen, phone cases",
+      "rawText": "",
+      "variants": [
+        {
+          "id": "v3",
+          "sku": "SKU-PC-IP15P",
+          "color": "Default",
+          "size": "Standard",
+          "mrp": 1499,
+          "price": 999,
+          "stock": 51
+        }
+      ],
+      "hsn": "",
+      "origin": "India",
+      "weight": 0.45,
+      "approved": false
+    },
+    {
+      "id": "5",
+      "sku": "SKU-BR-ROYL5",
+      "name": "Daawat Rozana Super Basmati Long Grain Rice – 5kg",
+      "brand": "Daawat",
+      "category": "Grocery > Rice",
+      "marketplace": "Flipkart",
+      "status": "Ready",
+      "score": 85,
+      "updatedAt": "2026-09-12T11:00:00.000Z",
+      "title": "Daawat Rozana Super Basmati Long Grain Rice – 5kg",
+      "description": "Daawat Rozana Super Basmati Long Grain Rice – 5kg. Review the product specifications and add verified details before publishing.",
+      "bullets": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "keywords": "daawat, rice",
+      "rawText": "",
+      "variants": [
+        {
+          "id": "v4",
+          "sku": "SKU-BR-ROYL5",
+          "color": "Default",
+          "size": "Standard",
+          "mrp": 1499,
+          "price": 999,
+          "stock": 54
+        }
+      ],
+      "hsn": "",
+      "origin": "India",
+      "weight": 0.45,
+      "approved": false
+    },
+    {
+      "id": "6",
+      "sku": "SKU-SS-KNJVS",
+      "name": "Varkala Silk Sarees Kanjivaram Soft Banarasi Zari Silk",
+      "brand": "Varkala",
+      "category": "Ethnic Wear > Sarees",
+      "marketplace": "Amazon",
+      "status": "Failed",
+      "score": 45,
+      "updatedAt": "2026-09-12T10:00:00.000Z",
+      "title": "Varkala Silk Sarees Kanjivaram Soft Banarasi Zari Silk",
+      "description": "Varkala Silk Sarees Kanjivaram Soft Banarasi Zari Silk. Review the product specifications and add verified details before publishing.",
+      "bullets": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "keywords": "varkala, sarees",
+      "rawText": "",
+      "variants": [
+        {
+          "id": "v5",
+          "sku": "SKU-SS-KNJVS",
+          "color": "Default",
+          "size": "Standard",
+          "mrp": 1499,
+          "price": 999,
+          "stock": 57
+        }
+      ],
+      "hsn": "",
+      "origin": "India",
+      "weight": 0.45,
+      "approved": false
+    },
+    {
+      "id": "7",
+      "sku": "SKU-PB-AMB10",
+      "name": "Ambrane 10000mAh Slim Fast Charging Power Bank",
+      "brand": "Ambrane",
+      "category": "Electronics > Power Banks",
+      "marketplace": "Amazon",
+      "status": "Processing",
+      "score": 68,
+      "updatedAt": "2026-09-12T09:00:00.000Z",
+      "title": "Ambrane 10000mAh Slim Fast Charging Power Bank",
+      "description": "Ambrane 10000mAh Slim Fast Charging Power Bank. Review the product specifications and add verified details before publishing.",
+      "bullets": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "keywords": "ambrane, power banks",
+      "rawText": "",
+      "variants": [
+        {
+          "id": "v6",
+          "sku": "SKU-PB-AMB10",
+          "color": "Default",
+          "size": "Standard",
+          "mrp": 1499,
+          "price": 999,
+          "stock": 60
+        }
+      ],
+      "hsn": "",
+      "origin": "India",
+      "weight": 0.45,
+      "approved": false
+    },
+    {
+      "id": "8",
+      "sku": "SKU-MS-PREM3",
+      "name": "Everest Premium Masala Set (Chhole, Garam, Sabji)",
+      "brand": "Everest",
+      "category": "Grocery > Spices",
+      "marketplace": "Flipkart",
+      "status": "Ready",
+      "score": 90,
+      "updatedAt": "2026-09-12T08:00:00.000Z",
+      "title": "Everest Premium Masala Set (Chhole, Garam, Sabji)",
+      "description": "Everest Premium Masala Set (Chhole, Garam, Sabji). Review the product specifications and add verified details before publishing.",
+      "bullets": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "keywords": "everest, spices",
+      "rawText": "",
+      "variants": [
+        {
+          "id": "v7",
+          "sku": "SKU-MS-PREM3",
+          "color": "Default",
+          "size": "Standard",
+          "mrp": 1499,
+          "price": 999,
+          "stock": 63
+        }
+      ],
+      "hsn": "",
+      "origin": "India",
+      "weight": 0.45,
+      "approved": false
+    },
+    {
+      "id": "9",
+      "sku": "SKU-BT-WAL99",
+      "name": "Wildhorn Genuine Leather Men’s Wallet (Textured Brown)",
+      "brand": "Wildhorn",
+      "category": "Accessories > Wallets",
+      "marketplace": "Flipkart",
+      "status": "Published",
+      "score": 91,
+      "updatedAt": "2026-09-12T07:00:00.000Z",
+      "title": "Wildhorn Genuine Leather Men’s Wallet (Textured Brown)",
+      "description": "Wildhorn Genuine Leather Men’s Wallet (Textured Brown). Review the product specifications and add verified details before publishing.",
+      "bullets": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "keywords": "wildhorn, wallets",
+      "rawText": "",
+      "variants": [
+        {
+          "id": "v8",
+          "sku": "SKU-BT-WAL99",
+          "color": "Default",
+          "size": "Standard",
+          "mrp": 1499,
+          "price": 999,
+          "stock": 66
+        }
+      ],
+      "hsn": "",
+      "origin": "India",
+      "weight": 0.45,
+      "approved": false
+    },
+    {
+      "id": "10",
+      "sku": "SKU-WB-COP01",
+      "name": "Dr. Copper Seamless 100% Pure Copper Water Bottle",
+      "brand": "Dr. Copper",
+      "category": "Home > Drinkware",
+      "marketplace": "Amazon",
+      "status": "Failed",
+      "score": 38,
+      "updatedAt": "2026-09-12T06:00:00.000Z",
+      "title": "Dr. Copper Seamless 100% Pure Copper Water Bottle",
+      "description": "Dr. Copper Seamless 100% Pure Copper Water Bottle. Review the product specifications and add verified details before publishing.",
+      "bullets": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "keywords": "dr. copper, drinkware",
+      "rawText": "",
+      "variants": [
+        {
+          "id": "v9",
+          "sku": "SKU-WB-COP01",
+          "color": "Default",
+          "size": "Standard",
+          "mrp": 1499,
+          "price": 999,
+          "stock": 69
+        }
+      ],
+      "hsn": "",
+      "origin": "India",
+      "weight": 0.45,
+      "approved": false
+    },
+    {
+      "id": "11",
+      "sku": "SKU-KT-ANOK2",
+      "name": "Anokhi Everyday Cotton Straight Kurta (Sage)",
+      "brand": "Anokhi",
+      "category": "Ethnic Wear > Kurtas",
+      "marketplace": "Flipkart",
+      "status": "Draft",
+      "score": 60,
+      "updatedAt": "2026-09-12T05:00:00.000Z",
+      "title": "Anokhi Everyday Cotton Straight Kurta (Sage)",
+      "description": "Anokhi Everyday Cotton Straight Kurta (Sage). Review the product specifications and add verified details before publishing.",
+      "bullets": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "keywords": "anokhi, kurtas",
+      "rawText": "",
+      "variants": [
+        {
+          "id": "v10",
+          "sku": "SKU-KT-ANOK2",
+          "color": "Default",
+          "size": "Standard",
+          "mrp": 1499,
+          "price": 999,
+          "stock": 72
+        }
+      ],
+      "hsn": "",
+      "origin": "India",
+      "weight": 0.45,
+      "approved": false
+    },
+    {
+      "id": "12",
+      "sku": "SKU-EB-NIRV1",
+      "name": "boAt Nirvana Space Wireless Headphones",
+      "brand": "boAt",
+      "category": "Electronics > Audio",
+      "marketplace": "Amazon",
+      "status": "Ready",
+      "score": 92,
+      "updatedAt": "2026-09-12T04:00:00.000Z",
+      "title": "boAt Nirvana Space Wireless Headphones",
+      "description": "boAt Nirvana Space Wireless Headphones. Review the product specifications and add verified details before publishing.",
+      "bullets": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "keywords": "boat, audio",
+      "rawText": "",
+      "variants": [
+        {
+          "id": "v11",
+          "sku": "SKU-EB-NIRV1",
+          "color": "Default",
+          "size": "Standard",
+          "mrp": 1499,
+          "price": 999,
+          "stock": 75
+        }
+      ],
+      "hsn": "",
+      "origin": "India",
+      "weight": 0.45,
+      "approved": false
+    }
+  ]
+}

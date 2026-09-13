@@ -1,0 +1,1689 @@
+{
+  "exportedAt": "2026-09-13T11:20:32.504Z",
+  "description": "Local synthetic workspace snapshot; not a database backup. Secrets excluded.",
+  "workspace": {
+    "id": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+    "teamId": "d0add393-6f7c-4a83-a536-94d3bbd314fc",
+    "folderId": "6963fd1b-1b3d-40db-aa9e-abe44994a155",
+    "name": "Sharma Exports",
+    "createdAt": "2026-09-13T11:16:48.338Z",
+    "updatedAt": "2026-09-13T11:16:48.338Z",
+    "archivedAt": null
+  },
+  "users": [
+    {
+      "id": "24983ca1-a4cc-427b-add3-12043c6d1789",
+      "email": "rajesh@example.com",
+      "displayName": "Rajesh Sharma",
+      "accountType": "AGENCY"
+    }
+  ],
+  "teams": [
+    {
+      "id": "d0add393-6f7c-4a83-a536-94d3bbd314fc",
+      "name": "Catalog team",
+      "createdById": "24983ca1-a4cc-427b-add3-12043c6d1789",
+      "createdAt": "2026-09-13T11:16:48.264Z",
+      "updatedAt": "2026-09-13T11:16:48.264Z",
+      "archivedAt": null,
+      "memberships": [
+        {
+          "teamId": "d0add393-6f7c-4a83-a536-94d3bbd314fc",
+          "userId": "24983ca1-a4cc-427b-add3-12043c6d1789",
+          "role": "OWNER",
+          "createdAt": "2026-09-13T11:16:48.287Z",
+          "updatedAt": "2026-09-13T11:16:48.287Z"
+        }
+      ],
+      "folders": [
+        {
+          "id": "6963fd1b-1b3d-40db-aa9e-abe44994a155",
+          "teamId": "d0add393-6f7c-4a83-a536-94d3bbd314fc",
+          "name": "Local catalog",
+          "createdAt": "2026-09-13T11:16:48.308Z",
+          "updatedAt": "2026-09-13T11:16:48.308Z"
+        }
+      ]
+    }
+  ],
+  "brand": {
+    "id": "23e11570-c5b5-43e8-a372-d957bab8bbd8",
+    "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+    "name": "Anokhi",
+    "tone": "Warm & authentic",
+    "glossary": {
+      "text": "Anarkali, handcrafted, everyday elegance"
+    },
+    "bannedTerms": [
+      "100% guaranteed",
+      "best in the world",
+      "cure"
+    ],
+    "painPoints": "Comfortable ethnic wear for everyday moments and special occasions.",
+    "embeddingModel": null,
+    "embeddedAt": null,
+    "createdAt": "2026-09-13T11:16:48.362Z",
+    "updatedAt": "2026-09-13T11:16:48.362Z"
+  },
+  "products": [
+    {
+      "id": "50164618-f178-4f63-a809-a194ee83a248",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "brandContextId": "23e11570-c5b5-43e8-a372-d957bab8bbd8",
+      "importBatchId": null,
+      "name": "boAt Nirvana Space Wireless Headphones",
+      "categoryPath": "Electronics > Audio",
+      "rawInputText": "",
+      "canonicalData": {
+        "brand": "boAt",
+        "image": "",
+        "fixture": true,
+        "fixtureScore": 92,
+        "fixtureStatus": "Ready"
+      },
+      "attributes": {},
+      "descriptionTemplate": null,
+      "createdAt": "2026-09-12T04:00:00.000Z",
+      "updatedAt": "2026-09-12T04:00:00.000Z",
+      "deletedAt": null
+    },
+    {
+      "id": "8a47b883-37a6-4345-a976-e525c72c01ca",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "brandContextId": "23e11570-c5b5-43e8-a372-d957bab8bbd8",
+      "importBatchId": null,
+      "name": "Anokhi Everyday Cotton Straight Kurta (Sage)",
+      "categoryPath": "Ethnic Wear > Kurtas",
+      "rawInputText": "",
+      "canonicalData": {
+        "brand": "Anokhi",
+        "image": "",
+        "fixture": true,
+        "fixtureScore": 60,
+        "fixtureStatus": "Draft"
+      },
+      "attributes": {},
+      "descriptionTemplate": null,
+      "createdAt": "2026-09-12T05:00:00.000Z",
+      "updatedAt": "2026-09-12T05:00:00.000Z",
+      "deletedAt": null
+    },
+    {
+      "id": "efdf4060-320e-4348-a6c1-1d0105bdf097",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "brandContextId": "23e11570-c5b5-43e8-a372-d957bab8bbd8",
+      "importBatchId": null,
+      "name": "Dr. Copper Seamless 100% Pure Copper Water Bottle",
+      "categoryPath": "Home > Drinkware",
+      "rawInputText": "",
+      "canonicalData": {
+        "brand": "Dr. Copper",
+        "image": "",
+        "fixture": true,
+        "fixtureScore": 38,
+        "fixtureStatus": "Failed"
+      },
+      "attributes": {},
+      "descriptionTemplate": null,
+      "createdAt": "2026-09-12T06:00:00.000Z",
+      "updatedAt": "2026-09-12T06:00:00.000Z",
+      "deletedAt": null
+    },
+    {
+      "id": "87f3282e-56e4-4776-ae48-e0ae7ea2ab40",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "brandContextId": "23e11570-c5b5-43e8-a372-d957bab8bbd8",
+      "importBatchId": null,
+      "name": "Wildhorn Genuine Leather Men’s Wallet (Textured Brown)",
+      "categoryPath": "Accessories > Wallets",
+      "rawInputText": "",
+      "canonicalData": {
+        "brand": "Wildhorn",
+        "image": "",
+        "fixture": true,
+        "fixtureScore": 91,
+        "fixtureStatus": "Published"
+      },
+      "attributes": {},
+      "descriptionTemplate": null,
+      "createdAt": "2026-09-12T07:00:00.000Z",
+      "updatedAt": "2026-09-12T07:00:00.000Z",
+      "deletedAt": null
+    },
+    {
+      "id": "a2d41bc6-040a-492f-a766-cd29ef4d2f17",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "brandContextId": "23e11570-c5b5-43e8-a372-d957bab8bbd8",
+      "importBatchId": null,
+      "name": "Everest Premium Masala Set (Chhole, Garam, Sabji)",
+      "categoryPath": "Grocery > Spices",
+      "rawInputText": "",
+      "canonicalData": {
+        "brand": "Everest",
+        "image": "",
+        "fixture": true,
+        "fixtureScore": 90,
+        "fixtureStatus": "Ready"
+      },
+      "attributes": {},
+      "descriptionTemplate": null,
+      "createdAt": "2026-09-12T08:00:00.000Z",
+      "updatedAt": "2026-09-12T08:00:00.000Z",
+      "deletedAt": null
+    },
+    {
+      "id": "c851f059-862a-4f9d-a52d-40acb2b1f00e",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "brandContextId": "23e11570-c5b5-43e8-a372-d957bab8bbd8",
+      "importBatchId": null,
+      "name": "Ambrane 10000mAh Slim Fast Charging Power Bank",
+      "categoryPath": "Electronics > Power Banks",
+      "rawInputText": "",
+      "canonicalData": {
+        "brand": "Ambrane",
+        "image": "",
+        "fixture": true,
+        "fixtureScore": 68,
+        "fixtureStatus": "Processing"
+      },
+      "attributes": {},
+      "descriptionTemplate": null,
+      "createdAt": "2026-09-12T09:00:00.000Z",
+      "updatedAt": "2026-09-12T09:00:00.000Z",
+      "deletedAt": null
+    },
+    {
+      "id": "4e802791-7b02-46f1-a59a-4094aa7cd21e",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "brandContextId": "23e11570-c5b5-43e8-a372-d957bab8bbd8",
+      "importBatchId": null,
+      "name": "Varkala Silk Sarees Kanjivaram Soft Banarasi Zari Silk",
+      "categoryPath": "Ethnic Wear > Sarees",
+      "rawInputText": "",
+      "canonicalData": {
+        "brand": "Varkala",
+        "image": "",
+        "fixture": true,
+        "fixtureScore": 45,
+        "fixtureStatus": "Failed"
+      },
+      "attributes": {},
+      "descriptionTemplate": null,
+      "createdAt": "2026-09-12T10:00:00.000Z",
+      "updatedAt": "2026-09-12T10:00:00.000Z",
+      "deletedAt": null
+    },
+    {
+      "id": "39dfc154-6b47-4ca8-a7bc-b03c31cb94ac",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "brandContextId": "23e11570-c5b5-43e8-a372-d957bab8bbd8",
+      "importBatchId": null,
+      "name": "Daawat Rozana Super Basmati Long Grain Rice – 5kg",
+      "categoryPath": "Grocery > Rice",
+      "rawInputText": "",
+      "canonicalData": {
+        "brand": "Daawat",
+        "image": "",
+        "fixture": true,
+        "fixtureScore": 85,
+        "fixtureStatus": "Ready"
+      },
+      "attributes": {},
+      "descriptionTemplate": null,
+      "createdAt": "2026-09-12T11:00:00.000Z",
+      "updatedAt": "2026-09-12T11:00:00.000Z",
+      "deletedAt": null
+    },
+    {
+      "id": "707f9a1b-0e9b-435d-a7fd-56314c935c86",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "brandContextId": "23e11570-c5b5-43e8-a372-d957bab8bbd8",
+      "importBatchId": null,
+      "name": "Spigen Liquid Air Shockproof Case for iPhone 15 Pro",
+      "categoryPath": "Accessories > Phone Cases",
+      "rawInputText": "",
+      "canonicalData": {
+        "brand": "Spigen",
+        "image": "",
+        "fixture": true,
+        "fixtureScore": 94,
+        "fixtureStatus": "Published"
+      },
+      "attributes": {},
+      "descriptionTemplate": null,
+      "createdAt": "2026-09-12T12:00:00.000Z",
+      "updatedAt": "2026-09-12T12:00:00.000Z",
+      "deletedAt": null
+    },
+    {
+      "id": "30f4d907-589a-433a-a7ce-582288bb42a0",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "brandContextId": "23e11570-c5b5-43e8-a372-d957bab8bbd8",
+      "importBatchId": null,
+      "name": "Catch Organic Turmeric Powder (Haldi) – 500g",
+      "categoryPath": "Grocery > Spices",
+      "rawInputText": "",
+      "canonicalData": {
+        "brand": "Catch",
+        "image": "",
+        "fixture": true,
+        "fixtureScore": 72,
+        "fixtureStatus": "Processing"
+      },
+      "attributes": {},
+      "descriptionTemplate": null,
+      "createdAt": "2026-09-12T13:00:00.000Z",
+      "updatedAt": "2026-09-12T13:00:00.000Z",
+      "deletedAt": null
+    },
+    {
+      "id": "2404588b-89b9-467a-a873-e4766f922bb6",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "brandContextId": "23e11570-c5b5-43e8-a372-d957bab8bbd8",
+      "importBatchId": null,
+      "name": "boAt Airdopes 141 Bluetooth Wireless Earbuds (Active Black)",
+      "categoryPath": "Electronics > Audio",
+      "rawInputText": "",
+      "canonicalData": {
+        "brand": "boAt",
+        "image": "",
+        "fixture": true,
+        "fixtureScore": 96,
+        "fixtureStatus": "Published"
+      },
+      "attributes": {},
+      "descriptionTemplate": null,
+      "createdAt": "2026-09-12T14:00:00.000Z",
+      "updatedAt": "2026-09-12T14:00:00.000Z",
+      "deletedAt": null
+    },
+    {
+      "id": "6a0bf3bc-4bbc-401f-a6e2-0af53561581f",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "brandContextId": "23e11570-c5b5-43e8-a372-d957bab8bbd8",
+      "importBatchId": null,
+      "name": "Anokhi Pure Cotton Printed Anarkali Kurta (Blue)",
+      "categoryPath": "Ethnic Wear > Kurtas",
+      "rawInputText": "",
+      "canonicalData": {
+        "brand": "Anokhi",
+        "image": "",
+        "fixture": true,
+        "fixtureScore": 84,
+        "fixtureStatus": "Ready"
+      },
+      "attributes": {},
+      "descriptionTemplate": null,
+      "createdAt": "2026-09-12T15:00:00.000Z",
+      "updatedAt": "2026-09-12T15:00:00.000Z",
+      "deletedAt": null
+    }
+  ],
+  "variants": [
+    {
+      "id": "ac02a703-23a9-42e0-a8f9-8d252ba1e6b4",
+      "productId": "39dfc154-6b47-4ca8-a7bc-b03c31cb94ac",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "sellerSku": "SKU-BR-ROYL5",
+      "name": null,
+      "color": "Default",
+      "size": "Standard",
+      "attributes": {},
+      "currency": "INR",
+      "mrp": "1499",
+      "sellingPrice": "999",
+      "stock": 54,
+      "hsnCode": "",
+      "countryOfOrigin": "India",
+      "weightKg": "0.45",
+      "lengthCm": null,
+      "breadthCm": null,
+      "heightCm": null,
+      "taxCode": null,
+      "manufacturerDetails": null,
+      "packerDetails": null,
+      "importerDetails": null,
+      "createdAt": "2026-09-13T11:16:48.645Z",
+      "updatedAt": "2026-09-13T11:16:48.645Z",
+      "deletedAt": null
+    },
+    {
+      "id": "8948e2ad-9ca8-4eaa-a2f3-2fa036e1e8b7",
+      "productId": "87f3282e-56e4-4776-ae48-e0ae7ea2ab40",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "sellerSku": "SKU-BT-WAL99",
+      "name": null,
+      "color": "Default",
+      "size": "Standard",
+      "attributes": {},
+      "currency": "INR",
+      "mrp": "1499",
+      "sellingPrice": "999",
+      "stock": 66,
+      "hsnCode": "",
+      "countryOfOrigin": "India",
+      "weightKg": "0.45",
+      "lengthCm": null,
+      "breadthCm": null,
+      "heightCm": null,
+      "taxCode": null,
+      "manufacturerDetails": null,
+      "packerDetails": null,
+      "importerDetails": null,
+      "createdAt": "2026-09-13T11:16:48.811Z",
+      "updatedAt": "2026-09-13T11:16:48.811Z",
+      "deletedAt": null
+    },
+    {
+      "id": "c5c43d07-0584-4286-a4a7-fe813f80bdde",
+      "productId": "2404588b-89b9-467a-a873-e4766f922bb6",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "sellerSku": "SKU-EB-ADP14",
+      "name": null,
+      "color": "Default",
+      "size": "Standard",
+      "attributes": {},
+      "currency": "INR",
+      "mrp": "1499",
+      "sellingPrice": "999",
+      "stock": 45,
+      "hsnCode": "",
+      "countryOfOrigin": "India",
+      "weightKg": "0.45",
+      "lengthCm": null,
+      "breadthCm": null,
+      "heightCm": null,
+      "taxCode": null,
+      "manufacturerDetails": null,
+      "packerDetails": null,
+      "importerDetails": null,
+      "createdAt": "2026-09-13T11:16:48.516Z",
+      "updatedAt": "2026-09-13T11:16:48.516Z",
+      "deletedAt": null
+    },
+    {
+      "id": "7633f857-1688-4c88-a6bb-6382123ac5e1",
+      "productId": "50164618-f178-4f63-a809-a194ee83a248",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "sellerSku": "SKU-EB-NIRV1",
+      "name": null,
+      "color": "Default",
+      "size": "Standard",
+      "attributes": {},
+      "currency": "INR",
+      "mrp": "1499",
+      "sellingPrice": "999",
+      "stock": 75,
+      "hsnCode": "",
+      "countryOfOrigin": "India",
+      "weightKg": "0.45",
+      "lengthCm": null,
+      "breadthCm": null,
+      "heightCm": null,
+      "taxCode": null,
+      "manufacturerDetails": null,
+      "packerDetails": null,
+      "importerDetails": null,
+      "createdAt": "2026-09-13T11:16:48.938Z",
+      "updatedAt": "2026-09-13T11:16:48.938Z",
+      "deletedAt": null
+    },
+    {
+      "id": "e2c05dee-f0a4-4a43-af79-1c62d918d955",
+      "productId": "6a0bf3bc-4bbc-401f-a6e2-0af53561581f",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "sellerSku": "SKU-KT-ANOK1",
+      "name": null,
+      "color": "Navy blue",
+      "size": "M",
+      "attributes": {},
+      "currency": "INR",
+      "mrp": "2499",
+      "sellingPrice": "1799",
+      "stock": 42,
+      "hsnCode": "6204",
+      "countryOfOrigin": "India",
+      "weightKg": "0.45",
+      "lengthCm": null,
+      "breadthCm": null,
+      "heightCm": null,
+      "taxCode": null,
+      "manufacturerDetails": null,
+      "packerDetails": null,
+      "importerDetails": null,
+      "createdAt": "2026-09-13T11:16:48.433Z",
+      "updatedAt": "2026-09-13T11:16:48.433Z",
+      "deletedAt": null
+    },
+    {
+      "id": "2fb27877-2c33-4aff-a2f9-044729cb613e",
+      "productId": "8a47b883-37a6-4345-a976-e525c72c01ca",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "sellerSku": "SKU-KT-ANOK2",
+      "name": null,
+      "color": "Default",
+      "size": "Standard",
+      "attributes": {},
+      "currency": "INR",
+      "mrp": "1499",
+      "sellingPrice": "999",
+      "stock": 72,
+      "hsnCode": "",
+      "countryOfOrigin": "India",
+      "weightKg": "0.45",
+      "lengthCm": null,
+      "breadthCm": null,
+      "heightCm": null,
+      "taxCode": null,
+      "manufacturerDetails": null,
+      "packerDetails": null,
+      "importerDetails": null,
+      "createdAt": "2026-09-13T11:16:48.897Z",
+      "updatedAt": "2026-09-13T11:16:48.897Z",
+      "deletedAt": null
+    },
+    {
+      "id": "5953649c-7c6c-4496-a9ed-62c3ed1357f6",
+      "productId": "a2d41bc6-040a-492f-a766-cd29ef4d2f17",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "sellerSku": "SKU-MS-PREM3",
+      "name": null,
+      "color": "Default",
+      "size": "Standard",
+      "attributes": {},
+      "currency": "INR",
+      "mrp": "1499",
+      "sellingPrice": "999",
+      "stock": 63,
+      "hsnCode": "",
+      "countryOfOrigin": "India",
+      "weightKg": "0.45",
+      "lengthCm": null,
+      "breadthCm": null,
+      "heightCm": null,
+      "taxCode": null,
+      "manufacturerDetails": null,
+      "packerDetails": null,
+      "importerDetails": null,
+      "createdAt": "2026-09-13T11:16:48.772Z",
+      "updatedAt": "2026-09-13T11:16:48.772Z",
+      "deletedAt": null
+    },
+    {
+      "id": "61567d73-baec-45fd-abf4-2abc1a686a72",
+      "productId": "c851f059-862a-4f9d-a52d-40acb2b1f00e",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "sellerSku": "SKU-PB-AMB10",
+      "name": null,
+      "color": "Default",
+      "size": "Standard",
+      "attributes": {},
+      "currency": "INR",
+      "mrp": "1499",
+      "sellingPrice": "999",
+      "stock": 60,
+      "hsnCode": "",
+      "countryOfOrigin": "India",
+      "weightKg": "0.45",
+      "lengthCm": null,
+      "breadthCm": null,
+      "heightCm": null,
+      "taxCode": null,
+      "manufacturerDetails": null,
+      "packerDetails": null,
+      "importerDetails": null,
+      "createdAt": "2026-09-13T11:16:48.735Z",
+      "updatedAt": "2026-09-13T11:16:48.735Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cd79099e-4cf7-406e-adf3-9fc568659a2c",
+      "productId": "707f9a1b-0e9b-435d-a7fd-56314c935c86",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "sellerSku": "SKU-PC-IP15P",
+      "name": null,
+      "color": "Default",
+      "size": "Standard",
+      "attributes": {},
+      "currency": "INR",
+      "mrp": "1499",
+      "sellingPrice": "999",
+      "stock": 51,
+      "hsnCode": "",
+      "countryOfOrigin": "India",
+      "weightKg": "0.45",
+      "lengthCm": null,
+      "breadthCm": null,
+      "heightCm": null,
+      "taxCode": null,
+      "manufacturerDetails": null,
+      "packerDetails": null,
+      "importerDetails": null,
+      "createdAt": "2026-09-13T11:16:48.602Z",
+      "updatedAt": "2026-09-13T11:16:48.602Z",
+      "deletedAt": null
+    },
+    {
+      "id": "25b75a62-9787-4b90-a522-29e238ab409c",
+      "productId": "4e802791-7b02-46f1-a59a-4094aa7cd21e",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "sellerSku": "SKU-SS-KNJVS",
+      "name": null,
+      "color": "Default",
+      "size": "Standard",
+      "attributes": {},
+      "currency": "INR",
+      "mrp": "1499",
+      "sellingPrice": "999",
+      "stock": 57,
+      "hsnCode": "",
+      "countryOfOrigin": "India",
+      "weightKg": "0.45",
+      "lengthCm": null,
+      "breadthCm": null,
+      "heightCm": null,
+      "taxCode": null,
+      "manufacturerDetails": null,
+      "packerDetails": null,
+      "importerDetails": null,
+      "createdAt": "2026-09-13T11:16:48.690Z",
+      "updatedAt": "2026-09-13T11:16:48.690Z",
+      "deletedAt": null
+    },
+    {
+      "id": "054f2567-6d3c-45e6-a494-31c30272c107",
+      "productId": "30f4d907-589a-433a-a7ce-582288bb42a0",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "sellerSku": "SKU-TP-HAL50",
+      "name": null,
+      "color": "Default",
+      "size": "Standard",
+      "attributes": {},
+      "currency": "INR",
+      "mrp": "1499",
+      "sellingPrice": "999",
+      "stock": 48,
+      "hsnCode": "",
+      "countryOfOrigin": "India",
+      "weightKg": "0.45",
+      "lengthCm": null,
+      "breadthCm": null,
+      "heightCm": null,
+      "taxCode": null,
+      "manufacturerDetails": null,
+      "packerDetails": null,
+      "importerDetails": null,
+      "createdAt": "2026-09-13T11:16:48.563Z",
+      "updatedAt": "2026-09-13T11:16:48.563Z",
+      "deletedAt": null
+    },
+    {
+      "id": "5ed4db70-02c1-41fe-abc9-a0d8ca4d5777",
+      "productId": "efdf4060-320e-4348-a6c1-1d0105bdf097",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "sellerSku": "SKU-WB-COP01",
+      "name": null,
+      "color": "Default",
+      "size": "Standard",
+      "attributes": {},
+      "currency": "INR",
+      "mrp": "1499",
+      "sellingPrice": "999",
+      "stock": 69,
+      "hsnCode": "",
+      "countryOfOrigin": "India",
+      "weightKg": "0.45",
+      "lengthCm": null,
+      "breadthCm": null,
+      "heightCm": null,
+      "taxCode": null,
+      "manufacturerDetails": null,
+      "packerDetails": null,
+      "importerDetails": null,
+      "createdAt": "2026-09-13T11:16:48.851Z",
+      "updatedAt": "2026-09-13T11:16:48.851Z",
+      "deletedAt": null
+    }
+  ],
+  "listings": [
+    {
+      "id": "89ca3e64-ee9c-4c0f-ac91-11baf0fd9bd1",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "variantId": "e2c05dee-f0a4-4a43-af79-1c62d918d955",
+      "connectionId": null,
+      "platform": "AMAZON",
+      "marketplaceRegion": "IN",
+      "externalId": null,
+      "productUrl": null,
+      "status": "DRAFT",
+      "publicationStatus": "NEVER_PUBLISHED",
+      "createdAt": "2026-09-13T11:16:48.458Z",
+      "updatedAt": "2026-09-13T11:16:48.458Z"
+    },
+    {
+      "id": "7c84de32-0c4d-4db4-aa04-27994ada0748",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "variantId": "c5c43d07-0584-4286-a4a7-fe813f80bdde",
+      "connectionId": null,
+      "platform": "AMAZON",
+      "marketplaceRegion": "IN",
+      "externalId": null,
+      "productUrl": null,
+      "status": "DRAFT",
+      "publicationStatus": "NEVER_PUBLISHED",
+      "createdAt": "2026-09-13T11:16:48.528Z",
+      "updatedAt": "2026-09-13T11:16:48.528Z"
+    },
+    {
+      "id": "2f1f5219-2847-4485-aab7-22f5b927cd6a",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "variantId": "cd79099e-4cf7-406e-adf3-9fc568659a2c",
+      "connectionId": null,
+      "platform": "AMAZON",
+      "marketplaceRegion": "IN",
+      "externalId": null,
+      "productUrl": null,
+      "status": "DRAFT",
+      "publicationStatus": "NEVER_PUBLISHED",
+      "createdAt": "2026-09-13T11:16:48.612Z",
+      "updatedAt": "2026-09-13T11:16:48.612Z"
+    },
+    {
+      "id": "c70a22aa-6d96-48dc-a794-7a295aba43e5",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "variantId": "25b75a62-9787-4b90-a522-29e238ab409c",
+      "connectionId": null,
+      "platform": "AMAZON",
+      "marketplaceRegion": "IN",
+      "externalId": null,
+      "productUrl": null,
+      "status": "DRAFT",
+      "publicationStatus": "NEVER_PUBLISHED",
+      "createdAt": "2026-09-13T11:16:48.699Z",
+      "updatedAt": "2026-09-13T11:16:48.699Z"
+    },
+    {
+      "id": "268f6976-6125-45ac-a425-c25233f2d3be",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "variantId": "61567d73-baec-45fd-abf4-2abc1a686a72",
+      "connectionId": null,
+      "platform": "AMAZON",
+      "marketplaceRegion": "IN",
+      "externalId": null,
+      "productUrl": null,
+      "status": "DRAFT",
+      "publicationStatus": "NEVER_PUBLISHED",
+      "createdAt": "2026-09-13T11:16:48.743Z",
+      "updatedAt": "2026-09-13T11:16:48.743Z"
+    },
+    {
+      "id": "1331b2c8-24f1-4b3a-a1d7-041c77577cdb",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "variantId": "5ed4db70-02c1-41fe-abc9-a0d8ca4d5777",
+      "connectionId": null,
+      "platform": "AMAZON",
+      "marketplaceRegion": "IN",
+      "externalId": null,
+      "productUrl": null,
+      "status": "DRAFT",
+      "publicationStatus": "NEVER_PUBLISHED",
+      "createdAt": "2026-09-13T11:16:48.858Z",
+      "updatedAt": "2026-09-13T11:16:48.858Z"
+    },
+    {
+      "id": "b7d57a80-08db-439f-a69b-40d2b497c4b8",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "variantId": "7633f857-1688-4c88-a6bb-6382123ac5e1",
+      "connectionId": null,
+      "platform": "AMAZON",
+      "marketplaceRegion": "IN",
+      "externalId": null,
+      "productUrl": null,
+      "status": "DRAFT",
+      "publicationStatus": "NEVER_PUBLISHED",
+      "createdAt": "2026-09-13T11:16:48.951Z",
+      "updatedAt": "2026-09-13T11:16:48.951Z"
+    },
+    {
+      "id": "7c02b5fa-d7da-4819-afba-a1bbfdbdcf0c",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "variantId": "054f2567-6d3c-45e6-a494-31c30272c107",
+      "connectionId": null,
+      "platform": "FLIPKART",
+      "marketplaceRegion": "IN",
+      "externalId": null,
+      "productUrl": null,
+      "status": "DRAFT",
+      "publicationStatus": "NEVER_PUBLISHED",
+      "createdAt": "2026-09-13T11:16:48.577Z",
+      "updatedAt": "2026-09-13T11:16:48.577Z"
+    },
+    {
+      "id": "c1d359b5-e1e4-454a-a603-155d7aa6a15b",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "variantId": "ac02a703-23a9-42e0-a8f9-8d252ba1e6b4",
+      "connectionId": null,
+      "platform": "FLIPKART",
+      "marketplaceRegion": "IN",
+      "externalId": null,
+      "productUrl": null,
+      "status": "DRAFT",
+      "publicationStatus": "NEVER_PUBLISHED",
+      "createdAt": "2026-09-13T11:16:48.654Z",
+      "updatedAt": "2026-09-13T11:16:48.654Z"
+    },
+    {
+      "id": "2ade2a37-ba2c-4260-af82-b177416e634b",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "variantId": "5953649c-7c6c-4496-a9ed-62c3ed1357f6",
+      "connectionId": null,
+      "platform": "FLIPKART",
+      "marketplaceRegion": "IN",
+      "externalId": null,
+      "productUrl": null,
+      "status": "DRAFT",
+      "publicationStatus": "NEVER_PUBLISHED",
+      "createdAt": "2026-09-13T11:16:48.779Z",
+      "updatedAt": "2026-09-13T11:16:48.779Z"
+    },
+    {
+      "id": "d238b008-24c2-4846-a04c-108f9d6b6377",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "variantId": "8948e2ad-9ca8-4eaa-a2f3-2fa036e1e8b7",
+      "connectionId": null,
+      "platform": "FLIPKART",
+      "marketplaceRegion": "IN",
+      "externalId": null,
+      "productUrl": null,
+      "status": "DRAFT",
+      "publicationStatus": "NEVER_PUBLISHED",
+      "createdAt": "2026-09-13T11:16:48.818Z",
+      "updatedAt": "2026-09-13T11:16:48.818Z"
+    },
+    {
+      "id": "25ad0b46-c651-405c-a6c4-23ee1c0a6164",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "variantId": "2fb27877-2c33-4aff-a2f9-044729cb613e",
+      "connectionId": null,
+      "platform": "FLIPKART",
+      "marketplaceRegion": "IN",
+      "externalId": null,
+      "productUrl": null,
+      "status": "DRAFT",
+      "publicationStatus": "NEVER_PUBLISHED",
+      "createdAt": "2026-09-13T11:16:48.903Z",
+      "updatedAt": "2026-09-13T11:16:48.903Z"
+    }
+  ],
+  "revisions": [
+    {
+      "id": "14afd4ce-28f4-404d-a322-502034d43507",
+      "listingId": "89ca3e64-ee9c-4c0f-ac91-11baf0fd9bd1",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "number": 1,
+      "createdById": "24983ca1-a4cc-427b-add3-12043c6d1789",
+      "generationJobId": null,
+      "title": "Anokhi Women’s Pure Cotton Traditional Printed Anarkali Kurta Set with Dupatta (Navy Blue, Festive Edition)",
+      "description": "Bring a touch of everyday elegance to your wardrobe with this Anokhi printed Anarkali kurta. The flowing navy blue silhouette pairs a traditional floral print with the comfort of breathable cotton. Style it with the matching dupatta for a family gathering, a festive celebration, or a relaxed day out. Available in a range of sizes. Please check the size guide before ordering.",
+      "bulletPoints": [
+        "Made from pure cotton for breathable comfort throughout the day.",
+        "Navy blue Anarkali silhouette with floral motifs and a matching dupatta.",
+        "Neatly finished seams and a flowing hem for comfortable everyday movement.",
+        "Refer to the garment size chart to find your preferred fit.",
+        "Gentle hand wash recommended. Wash dark colours separately."
+      ],
+      "searchKeywords": [
+        "anarkali kurta",
+        "cotton kurta",
+        "ethnic wear",
+        "festive wear",
+        "printed kurta"
+      ],
+      "targetKeywords": [],
+      "aplusContent": {},
+      "merchantSnapshot": {
+        "id": "1",
+        "hsn": "6204",
+        "sku": "SKU-KT-ANOK1",
+        "name": "Anokhi Pure Cotton Printed Anarkali Kurta (Blue)",
+        "brand": "Anokhi",
+        "score": 84,
+        "title": "Anokhi Women’s Pure Cotton Traditional Printed Anarkali Kurta Set with Dupatta (Navy Blue, Festive Edition)",
+        "origin": "India",
+        "status": "Ready",
+        "weight": 0.45,
+        "bullets": [
+          "Made from pure cotton for breathable comfort throughout the day.",
+          "Navy blue Anarkali silhouette with floral motifs and a matching dupatta.",
+          "Neatly finished seams and a flowing hem for comfortable everyday movement.",
+          "Refer to the garment size chart to find your preferred fit.",
+          "Gentle hand wash recommended. Wash dark colours separately."
+        ],
+        "rawText": "",
+        "approved": false,
+        "category": "Ethnic Wear > Kurtas",
+        "keywords": "anarkali kurta, cotton kurta, ethnic wear, festive wear, printed kurta",
+        "variants": [
+          {
+            "id": "v0",
+            "mrp": 2499,
+            "sku": "SKU-KT-ANOK1",
+            "size": "M",
+            "color": "Navy blue",
+            "price": 1799,
+            "stock": 42
+          }
+        ],
+        "updatedAt": "2026-09-12T15:00:00.000Z",
+        "description": "Bring a touch of everyday elegance to your wardrobe with this Anokhi printed Anarkali kurta. The flowing navy blue silhouette pairs a traditional floral print with the comfort of breathable cotton. Style it with the matching dupatta for a family gathering, a festive celebration, or a relaxed day out. Available in a range of sizes. Please check the size guide before ordering.",
+        "marketplace": "Amazon"
+      },
+      "brandContextSnapshot": {
+        "name": "Anokhi",
+        "tone": "Warm & authentic",
+        "glossary": "Anarkali, handcrafted, everyday elegance",
+        "painPoints": "Comfortable ethnic wear for everyday moments and special occasions.",
+        "bannedTerms": "100% guaranteed, best in the world, cure"
+      },
+      "generationMetadata": {
+        "source": "synthetic-local-seed",
+        "generatedByAI": false
+      },
+      "createdAt": "2026-09-13T11:16:48.479Z"
+    },
+    {
+      "id": "77e7207f-d9b1-49a7-a94c-45c908357dc3",
+      "listingId": "7c84de32-0c4d-4db4-aa04-27994ada0748",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "number": 1,
+      "createdById": "24983ca1-a4cc-427b-add3-12043c6d1789",
+      "generationJobId": null,
+      "title": "boAt Airdopes 141 Bluetooth Wireless Earbuds (Active Black)",
+      "description": "boAt Airdopes 141 Bluetooth Wireless Earbuds (Active Black). Review the product specifications and add verified details before publishing.",
+      "bulletPoints": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "searchKeywords": [
+        "boat",
+        "audio"
+      ],
+      "targetKeywords": [],
+      "aplusContent": {},
+      "merchantSnapshot": {
+        "id": "2",
+        "hsn": "",
+        "sku": "SKU-EB-ADP14",
+        "name": "boAt Airdopes 141 Bluetooth Wireless Earbuds (Active Black)",
+        "brand": "boAt",
+        "score": 96,
+        "title": "boAt Airdopes 141 Bluetooth Wireless Earbuds (Active Black)",
+        "origin": "India",
+        "status": "Published",
+        "weight": 0.45,
+        "bullets": [
+          "Review material and build details.",
+          "Add verified product benefits.",
+          "Confirm included items and accessories.",
+          "Add dimensions and compatibility.",
+          "Include care and usage instructions."
+        ],
+        "rawText": "",
+        "approved": false,
+        "category": "Electronics > Audio",
+        "keywords": "boat, audio",
+        "variants": [
+          {
+            "id": "v1",
+            "mrp": 1499,
+            "sku": "SKU-EB-ADP14",
+            "size": "Standard",
+            "color": "Default",
+            "price": 999,
+            "stock": 45
+          }
+        ],
+        "updatedAt": "2026-09-12T14:00:00.000Z",
+        "description": "boAt Airdopes 141 Bluetooth Wireless Earbuds (Active Black). Review the product specifications and add verified details before publishing.",
+        "marketplace": "Amazon"
+      },
+      "brandContextSnapshot": {
+        "name": "Anokhi",
+        "tone": "Warm & authentic",
+        "glossary": "Anarkali, handcrafted, everyday elegance",
+        "painPoints": "Comfortable ethnic wear for everyday moments and special occasions.",
+        "bannedTerms": "100% guaranteed, best in the world, cure"
+      },
+      "generationMetadata": {
+        "source": "synthetic-local-seed",
+        "generatedByAI": false
+      },
+      "createdAt": "2026-09-13T11:16:48.540Z"
+    },
+    {
+      "id": "95c5a9c1-42ff-4275-ac8e-4e9d440e5101",
+      "listingId": "7c02b5fa-d7da-4819-afba-a1bbfdbdcf0c",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "number": 1,
+      "createdById": "24983ca1-a4cc-427b-add3-12043c6d1789",
+      "generationJobId": null,
+      "title": "Catch Organic Turmeric Powder (Haldi) – 500g",
+      "description": "Catch Organic Turmeric Powder (Haldi) – 500g. Review the product specifications and add verified details before publishing.",
+      "bulletPoints": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "searchKeywords": [
+        "catch",
+        "spices"
+      ],
+      "targetKeywords": [],
+      "aplusContent": {},
+      "merchantSnapshot": {
+        "id": "3",
+        "hsn": "",
+        "sku": "SKU-TP-HAL50",
+        "name": "Catch Organic Turmeric Powder (Haldi) – 500g",
+        "brand": "Catch",
+        "score": 72,
+        "title": "Catch Organic Turmeric Powder (Haldi) – 500g",
+        "origin": "India",
+        "status": "Processing",
+        "weight": 0.45,
+        "bullets": [
+          "Review material and build details.",
+          "Add verified product benefits.",
+          "Confirm included items and accessories.",
+          "Add dimensions and compatibility.",
+          "Include care and usage instructions."
+        ],
+        "rawText": "",
+        "approved": false,
+        "category": "Grocery > Spices",
+        "keywords": "catch, spices",
+        "variants": [
+          {
+            "id": "v2",
+            "mrp": 1499,
+            "sku": "SKU-TP-HAL50",
+            "size": "Standard",
+            "color": "Default",
+            "price": 999,
+            "stock": 48
+          }
+        ],
+        "updatedAt": "2026-09-12T13:00:00.000Z",
+        "description": "Catch Organic Turmeric Powder (Haldi) – 500g. Review the product specifications and add verified details before publishing.",
+        "marketplace": "Flipkart"
+      },
+      "brandContextSnapshot": {
+        "name": "Anokhi",
+        "tone": "Warm & authentic",
+        "glossary": "Anarkali, handcrafted, everyday elegance",
+        "painPoints": "Comfortable ethnic wear for everyday moments and special occasions.",
+        "bannedTerms": "100% guaranteed, best in the world, cure"
+      },
+      "generationMetadata": {
+        "source": "synthetic-local-seed",
+        "generatedByAI": false
+      },
+      "createdAt": "2026-09-13T11:16:48.585Z"
+    },
+    {
+      "id": "c5cca921-c2a4-4bcb-a397-f3d8cf45466a",
+      "listingId": "2f1f5219-2847-4485-aab7-22f5b927cd6a",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "number": 1,
+      "createdById": "24983ca1-a4cc-427b-add3-12043c6d1789",
+      "generationJobId": null,
+      "title": "Spigen Liquid Air Shockproof Case for iPhone 15 Pro",
+      "description": "Spigen Liquid Air Shockproof Case for iPhone 15 Pro. Review the product specifications and add verified details before publishing.",
+      "bulletPoints": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "searchKeywords": [
+        "spigen",
+        "phone cases"
+      ],
+      "targetKeywords": [],
+      "aplusContent": {},
+      "merchantSnapshot": {
+        "id": "4",
+        "hsn": "",
+        "sku": "SKU-PC-IP15P",
+        "name": "Spigen Liquid Air Shockproof Case for iPhone 15 Pro",
+        "brand": "Spigen",
+        "score": 94,
+        "title": "Spigen Liquid Air Shockproof Case for iPhone 15 Pro",
+        "origin": "India",
+        "status": "Published",
+        "weight": 0.45,
+        "bullets": [
+          "Review material and build details.",
+          "Add verified product benefits.",
+          "Confirm included items and accessories.",
+          "Add dimensions and compatibility.",
+          "Include care and usage instructions."
+        ],
+        "rawText": "",
+        "approved": false,
+        "category": "Accessories > Phone Cases",
+        "keywords": "spigen, phone cases",
+        "variants": [
+          {
+            "id": "v3",
+            "mrp": 1499,
+            "sku": "SKU-PC-IP15P",
+            "size": "Standard",
+            "color": "Default",
+            "price": 999,
+            "stock": 51
+          }
+        ],
+        "updatedAt": "2026-09-12T12:00:00.000Z",
+        "description": "Spigen Liquid Air Shockproof Case for iPhone 15 Pro. Review the product specifications and add verified details before publishing.",
+        "marketplace": "Amazon"
+      },
+      "brandContextSnapshot": {
+        "name": "Anokhi",
+        "tone": "Warm & authentic",
+        "glossary": "Anarkali, handcrafted, everyday elegance",
+        "painPoints": "Comfortable ethnic wear for everyday moments and special occasions.",
+        "bannedTerms": "100% guaranteed, best in the world, cure"
+      },
+      "generationMetadata": {
+        "source": "synthetic-local-seed",
+        "generatedByAI": false
+      },
+      "createdAt": "2026-09-13T11:16:48.623Z"
+    },
+    {
+      "id": "1ccba4f7-be4f-4077-a739-ee1bcc7e587d",
+      "listingId": "c1d359b5-e1e4-454a-a603-155d7aa6a15b",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "number": 1,
+      "createdById": "24983ca1-a4cc-427b-add3-12043c6d1789",
+      "generationJobId": null,
+      "title": "Daawat Rozana Super Basmati Long Grain Rice – 5kg",
+      "description": "Daawat Rozana Super Basmati Long Grain Rice – 5kg. Review the product specifications and add verified details before publishing.",
+      "bulletPoints": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "searchKeywords": [
+        "daawat",
+        "rice"
+      ],
+      "targetKeywords": [],
+      "aplusContent": {},
+      "merchantSnapshot": {
+        "id": "5",
+        "hsn": "",
+        "sku": "SKU-BR-ROYL5",
+        "name": "Daawat Rozana Super Basmati Long Grain Rice – 5kg",
+        "brand": "Daawat",
+        "score": 85,
+        "title": "Daawat Rozana Super Basmati Long Grain Rice – 5kg",
+        "origin": "India",
+        "status": "Ready",
+        "weight": 0.45,
+        "bullets": [
+          "Review material and build details.",
+          "Add verified product benefits.",
+          "Confirm included items and accessories.",
+          "Add dimensions and compatibility.",
+          "Include care and usage instructions."
+        ],
+        "rawText": "",
+        "approved": false,
+        "category": "Grocery > Rice",
+        "keywords": "daawat, rice",
+        "variants": [
+          {
+            "id": "v4",
+            "mrp": 1499,
+            "sku": "SKU-BR-ROYL5",
+            "size": "Standard",
+            "color": "Default",
+            "price": 999,
+            "stock": 54
+          }
+        ],
+        "updatedAt": "2026-09-12T11:00:00.000Z",
+        "description": "Daawat Rozana Super Basmati Long Grain Rice – 5kg. Review the product specifications and add verified details before publishing.",
+        "marketplace": "Flipkart"
+      },
+      "brandContextSnapshot": {
+        "name": "Anokhi",
+        "tone": "Warm & authentic",
+        "glossary": "Anarkali, handcrafted, everyday elegance",
+        "painPoints": "Comfortable ethnic wear for everyday moments and special occasions.",
+        "bannedTerms": "100% guaranteed, best in the world, cure"
+      },
+      "generationMetadata": {
+        "source": "synthetic-local-seed",
+        "generatedByAI": false
+      },
+      "createdAt": "2026-09-13T11:16:48.666Z"
+    },
+    {
+      "id": "550a661f-7da7-46fc-a110-c6134d556058",
+      "listingId": "c70a22aa-6d96-48dc-a794-7a295aba43e5",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "number": 1,
+      "createdById": "24983ca1-a4cc-427b-add3-12043c6d1789",
+      "generationJobId": null,
+      "title": "Varkala Silk Sarees Kanjivaram Soft Banarasi Zari Silk",
+      "description": "Varkala Silk Sarees Kanjivaram Soft Banarasi Zari Silk. Review the product specifications and add verified details before publishing.",
+      "bulletPoints": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "searchKeywords": [
+        "varkala",
+        "sarees"
+      ],
+      "targetKeywords": [],
+      "aplusContent": {},
+      "merchantSnapshot": {
+        "id": "6",
+        "hsn": "",
+        "sku": "SKU-SS-KNJVS",
+        "name": "Varkala Silk Sarees Kanjivaram Soft Banarasi Zari Silk",
+        "brand": "Varkala",
+        "score": 45,
+        "title": "Varkala Silk Sarees Kanjivaram Soft Banarasi Zari Silk",
+        "origin": "India",
+        "status": "Failed",
+        "weight": 0.45,
+        "bullets": [
+          "Review material and build details.",
+          "Add verified product benefits.",
+          "Confirm included items and accessories.",
+          "Add dimensions and compatibility.",
+          "Include care and usage instructions."
+        ],
+        "rawText": "",
+        "approved": false,
+        "category": "Ethnic Wear > Sarees",
+        "keywords": "varkala, sarees",
+        "variants": [
+          {
+            "id": "v5",
+            "mrp": 1499,
+            "sku": "SKU-SS-KNJVS",
+            "size": "Standard",
+            "color": "Default",
+            "price": 999,
+            "stock": 57
+          }
+        ],
+        "updatedAt": "2026-09-12T10:00:00.000Z",
+        "description": "Varkala Silk Sarees Kanjivaram Soft Banarasi Zari Silk. Review the product specifications and add verified details before publishing.",
+        "marketplace": "Amazon"
+      },
+      "brandContextSnapshot": {
+        "name": "Anokhi",
+        "tone": "Warm & authentic",
+        "glossary": "Anarkali, handcrafted, everyday elegance",
+        "painPoints": "Comfortable ethnic wear for everyday moments and special occasions.",
+        "bannedTerms": "100% guaranteed, best in the world, cure"
+      },
+      "generationMetadata": {
+        "source": "synthetic-local-seed",
+        "generatedByAI": false
+      },
+      "createdAt": "2026-09-13T11:16:48.711Z"
+    },
+    {
+      "id": "141bdba2-3626-466d-a045-39096866b14e",
+      "listingId": "268f6976-6125-45ac-a425-c25233f2d3be",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "number": 1,
+      "createdById": "24983ca1-a4cc-427b-add3-12043c6d1789",
+      "generationJobId": null,
+      "title": "Ambrane 10000mAh Slim Fast Charging Power Bank",
+      "description": "Ambrane 10000mAh Slim Fast Charging Power Bank. Review the product specifications and add verified details before publishing.",
+      "bulletPoints": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "searchKeywords": [
+        "ambrane",
+        "power banks"
+      ],
+      "targetKeywords": [],
+      "aplusContent": {},
+      "merchantSnapshot": {
+        "id": "7",
+        "hsn": "",
+        "sku": "SKU-PB-AMB10",
+        "name": "Ambrane 10000mAh Slim Fast Charging Power Bank",
+        "brand": "Ambrane",
+        "score": 68,
+        "title": "Ambrane 10000mAh Slim Fast Charging Power Bank",
+        "origin": "India",
+        "status": "Processing",
+        "weight": 0.45,
+        "bullets": [
+          "Review material and build details.",
+          "Add verified product benefits.",
+          "Confirm included items and accessories.",
+          "Add dimensions and compatibility.",
+          "Include care and usage instructions."
+        ],
+        "rawText": "",
+        "approved": false,
+        "category": "Electronics > Power Banks",
+        "keywords": "ambrane, power banks",
+        "variants": [
+          {
+            "id": "v6",
+            "mrp": 1499,
+            "sku": "SKU-PB-AMB10",
+            "size": "Standard",
+            "color": "Default",
+            "price": 999,
+            "stock": 60
+          }
+        ],
+        "updatedAt": "2026-09-12T09:00:00.000Z",
+        "description": "Ambrane 10000mAh Slim Fast Charging Power Bank. Review the product specifications and add verified details before publishing.",
+        "marketplace": "Amazon"
+      },
+      "brandContextSnapshot": {
+        "name": "Anokhi",
+        "tone": "Warm & authentic",
+        "glossary": "Anarkali, handcrafted, everyday elegance",
+        "painPoints": "Comfortable ethnic wear for everyday moments and special occasions.",
+        "bannedTerms": "100% guaranteed, best in the world, cure"
+      },
+      "generationMetadata": {
+        "source": "synthetic-local-seed",
+        "generatedByAI": false
+      },
+      "createdAt": "2026-09-13T11:16:48.753Z"
+    },
+    {
+      "id": "dd787870-0e25-4444-a3d4-390e066fe342",
+      "listingId": "2ade2a37-ba2c-4260-af82-b177416e634b",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "number": 1,
+      "createdById": "24983ca1-a4cc-427b-add3-12043c6d1789",
+      "generationJobId": null,
+      "title": "Everest Premium Masala Set (Chhole, Garam, Sabji)",
+      "description": "Everest Premium Masala Set (Chhole, Garam, Sabji). Review the product specifications and add verified details before publishing.",
+      "bulletPoints": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "searchKeywords": [
+        "everest",
+        "spices"
+      ],
+      "targetKeywords": [],
+      "aplusContent": {},
+      "merchantSnapshot": {
+        "id": "8",
+        "hsn": "",
+        "sku": "SKU-MS-PREM3",
+        "name": "Everest Premium Masala Set (Chhole, Garam, Sabji)",
+        "brand": "Everest",
+        "score": 90,
+        "title": "Everest Premium Masala Set (Chhole, Garam, Sabji)",
+        "origin": "India",
+        "status": "Ready",
+        "weight": 0.45,
+        "bullets": [
+          "Review material and build details.",
+          "Add verified product benefits.",
+          "Confirm included items and accessories.",
+          "Add dimensions and compatibility.",
+          "Include care and usage instructions."
+        ],
+        "rawText": "",
+        "approved": false,
+        "category": "Grocery > Spices",
+        "keywords": "everest, spices",
+        "variants": [
+          {
+            "id": "v7",
+            "mrp": 1499,
+            "sku": "SKU-MS-PREM3",
+            "size": "Standard",
+            "color": "Default",
+            "price": 999,
+            "stock": 63
+          }
+        ],
+        "updatedAt": "2026-09-12T08:00:00.000Z",
+        "description": "Everest Premium Masala Set (Chhole, Garam, Sabji). Review the product specifications and add verified details before publishing.",
+        "marketplace": "Flipkart"
+      },
+      "brandContextSnapshot": {
+        "name": "Anokhi",
+        "tone": "Warm & authentic",
+        "glossary": "Anarkali, handcrafted, everyday elegance",
+        "painPoints": "Comfortable ethnic wear for everyday moments and special occasions.",
+        "bannedTerms": "100% guaranteed, best in the world, cure"
+      },
+      "generationMetadata": {
+        "source": "synthetic-local-seed",
+        "generatedByAI": false
+      },
+      "createdAt": "2026-09-13T11:16:48.789Z"
+    },
+    {
+      "id": "9dfc38cd-9836-4a2a-a66e-24d36d0822f3",
+      "listingId": "d238b008-24c2-4846-a04c-108f9d6b6377",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "number": 1,
+      "createdById": "24983ca1-a4cc-427b-add3-12043c6d1789",
+      "generationJobId": null,
+      "title": "Wildhorn Genuine Leather Men’s Wallet (Textured Brown)",
+      "description": "Wildhorn Genuine Leather Men’s Wallet (Textured Brown). Review the product specifications and add verified details before publishing.",
+      "bulletPoints": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "searchKeywords": [
+        "wildhorn",
+        "wallets"
+      ],
+      "targetKeywords": [],
+      "aplusContent": {},
+      "merchantSnapshot": {
+        "id": "9",
+        "hsn": "",
+        "sku": "SKU-BT-WAL99",
+        "name": "Wildhorn Genuine Leather Men’s Wallet (Textured Brown)",
+        "brand": "Wildhorn",
+        "score": 91,
+        "title": "Wildhorn Genuine Leather Men’s Wallet (Textured Brown)",
+        "origin": "India",
+        "status": "Published",
+        "weight": 0.45,
+        "bullets": [
+          "Review material and build details.",
+          "Add verified product benefits.",
+          "Confirm included items and accessories.",
+          "Add dimensions and compatibility.",
+          "Include care and usage instructions."
+        ],
+        "rawText": "",
+        "approved": false,
+        "category": "Accessories > Wallets",
+        "keywords": "wildhorn, wallets",
+        "variants": [
+          {
+            "id": "v8",
+            "mrp": 1499,
+            "sku": "SKU-BT-WAL99",
+            "size": "Standard",
+            "color": "Default",
+            "price": 999,
+            "stock": 66
+          }
+        ],
+        "updatedAt": "2026-09-12T07:00:00.000Z",
+        "description": "Wildhorn Genuine Leather Men’s Wallet (Textured Brown). Review the product specifications and add verified details before publishing.",
+        "marketplace": "Flipkart"
+      },
+      "brandContextSnapshot": {
+        "name": "Anokhi",
+        "tone": "Warm & authentic",
+        "glossary": "Anarkali, handcrafted, everyday elegance",
+        "painPoints": "Comfortable ethnic wear for everyday moments and special occasions.",
+        "bannedTerms": "100% guaranteed, best in the world, cure"
+      },
+      "generationMetadata": {
+        "source": "synthetic-local-seed",
+        "generatedByAI": false
+      },
+      "createdAt": "2026-09-13T11:16:48.829Z"
+    },
+    {
+      "id": "f96ba233-59f9-4abe-a382-b2533932cbdd",
+      "listingId": "1331b2c8-24f1-4b3a-a1d7-041c77577cdb",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "number": 1,
+      "createdById": "24983ca1-a4cc-427b-add3-12043c6d1789",
+      "generationJobId": null,
+      "title": "Dr. Copper Seamless 100% Pure Copper Water Bottle",
+      "description": "Dr. Copper Seamless 100% Pure Copper Water Bottle. Review the product specifications and add verified details before publishing.",
+      "bulletPoints": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "searchKeywords": [
+        "dr. copper",
+        "drinkware"
+      ],
+      "targetKeywords": [],
+      "aplusContent": {},
+      "merchantSnapshot": {
+        "id": "10",
+        "hsn": "",
+        "sku": "SKU-WB-COP01",
+        "name": "Dr. Copper Seamless 100% Pure Copper Water Bottle",
+        "brand": "Dr. Copper",
+        "score": 38,
+        "title": "Dr. Copper Seamless 100% Pure Copper Water Bottle",
+        "origin": "India",
+        "status": "Failed",
+        "weight": 0.45,
+        "bullets": [
+          "Review material and build details.",
+          "Add verified product benefits.",
+          "Confirm included items and accessories.",
+          "Add dimensions and compatibility.",
+          "Include care and usage instructions."
+        ],
+        "rawText": "",
+        "approved": false,
+        "category": "Home > Drinkware",
+        "keywords": "dr. copper, drinkware",
+        "variants": [
+          {
+            "id": "v9",
+            "mrp": 1499,
+            "sku": "SKU-WB-COP01",
+            "size": "Standard",
+            "color": "Default",
+            "price": 999,
+            "stock": 69
+          }
+        ],
+        "updatedAt": "2026-09-12T06:00:00.000Z",
+        "description": "Dr. Copper Seamless 100% Pure Copper Water Bottle. Review the product specifications and add verified details before publishing.",
+        "marketplace": "Amazon"
+      },
+      "brandContextSnapshot": {
+        "name": "Anokhi",
+        "tone": "Warm & authentic",
+        "glossary": "Anarkali, handcrafted, everyday elegance",
+        "painPoints": "Comfortable ethnic wear for everyday moments and special occasions.",
+        "bannedTerms": "100% guaranteed, best in the world, cure"
+      },
+      "generationMetadata": {
+        "source": "synthetic-local-seed",
+        "generatedByAI": false
+      },
+      "createdAt": "2026-09-13T11:16:48.869Z"
+    },
+    {
+      "id": "2b47ce19-7a86-4ee3-aa0c-30fc65fdeae7",
+      "listingId": "25ad0b46-c651-405c-a6c4-23ee1c0a6164",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "number": 1,
+      "createdById": "24983ca1-a4cc-427b-add3-12043c6d1789",
+      "generationJobId": null,
+      "title": "Anokhi Everyday Cotton Straight Kurta (Sage)",
+      "description": "Anokhi Everyday Cotton Straight Kurta (Sage). Review the product specifications and add verified details before publishing.",
+      "bulletPoints": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "searchKeywords": [
+        "anokhi",
+        "kurtas"
+      ],
+      "targetKeywords": [],
+      "aplusContent": {},
+      "merchantSnapshot": {
+        "id": "11",
+        "hsn": "",
+        "sku": "SKU-KT-ANOK2",
+        "name": "Anokhi Everyday Cotton Straight Kurta (Sage)",
+        "brand": "Anokhi",
+        "score": 60,
+        "title": "Anokhi Everyday Cotton Straight Kurta (Sage)",
+        "origin": "India",
+        "status": "Draft",
+        "weight": 0.45,
+        "bullets": [
+          "Review material and build details.",
+          "Add verified product benefits.",
+          "Confirm included items and accessories.",
+          "Add dimensions and compatibility.",
+          "Include care and usage instructions."
+        ],
+        "rawText": "",
+        "approved": false,
+        "category": "Ethnic Wear > Kurtas",
+        "keywords": "anokhi, kurtas",
+        "variants": [
+          {
+            "id": "v10",
+            "mrp": 1499,
+            "sku": "SKU-KT-ANOK2",
+            "size": "Standard",
+            "color": "Default",
+            "price": 999,
+            "stock": 72
+          }
+        ],
+        "updatedAt": "2026-09-12T05:00:00.000Z",
+        "description": "Anokhi Everyday Cotton Straight Kurta (Sage). Review the product specifications and add verified details before publishing.",
+        "marketplace": "Flipkart"
+      },
+      "brandContextSnapshot": {
+        "name": "Anokhi",
+        "tone": "Warm & authentic",
+        "glossary": "Anarkali, handcrafted, everyday elegance",
+        "painPoints": "Comfortable ethnic wear for everyday moments and special occasions.",
+        "bannedTerms": "100% guaranteed, best in the world, cure"
+      },
+      "generationMetadata": {
+        "source": "synthetic-local-seed",
+        "generatedByAI": false
+      },
+      "createdAt": "2026-09-13T11:16:48.913Z"
+    },
+    {
+      "id": "d0294f2d-480e-4f0e-ac91-3133d309b762",
+      "listingId": "b7d57a80-08db-439f-a69b-40d2b497c4b8",
+      "workspaceId": "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32",
+      "number": 1,
+      "createdById": "24983ca1-a4cc-427b-add3-12043c6d1789",
+      "generationJobId": null,
+      "title": "boAt Nirvana Space Wireless Headphones",
+      "description": "boAt Nirvana Space Wireless Headphones. Review the product specifications and add verified details before publishing.",
+      "bulletPoints": [
+        "Review material and build details.",
+        "Add verified product benefits.",
+        "Confirm included items and accessories.",
+        "Add dimensions and compatibility.",
+        "Include care and usage instructions."
+      ],
+      "searchKeywords": [
+        "boat",
+        "audio"
+      ],
+      "targetKeywords": [],
+      "aplusContent": {},
+      "merchantSnapshot": {
+        "id": "12",
+        "hsn": "",
+        "sku": "SKU-EB-NIRV1",
+        "name": "boAt Nirvana Space Wireless Headphones",
+        "brand": "boAt",
+        "score": 92,
+        "title": "boAt Nirvana Space Wireless Headphones",
+        "origin": "India",
+        "status": "Ready",
+        "weight": 0.45,
+        "bullets": [
+          "Review material and build details.",
+          "Add verified product benefits.",
+          "Confirm included items and accessories.",
+          "Add dimensions and compatibility.",
+          "Include care and usage instructions."
+        ],
+        "rawText": "",
+        "approved": false,
+        "category": "Electronics > Audio",
+        "keywords": "boat, audio",
+        "variants": [
+          {
+            "id": "v11",
+            "mrp": 1499,
+            "sku": "SKU-EB-NIRV1",
+            "size": "Standard",
+            "color": "Default",
+            "price": 999,
+            "stock": 75
+          }
+        ],
+        "updatedAt": "2026-09-12T04:00:00.000Z",
+        "description": "boAt Nirvana Space Wireless Headphones. Review the product specifications and add verified details before publishing.",
+        "marketplace": "Amazon"
+      },
+      "brandContextSnapshot": {
+        "name": "Anokhi",
+        "tone": "Warm & authentic",
+        "glossary": "Anarkali, handcrafted, everyday elegance",
+        "painPoints": "Comfortable ethnic wear for everyday moments and special occasions.",
+        "bannedTerms": "100% guaranteed, best in the world, cure"
+      },
+      "generationMetadata": {
+        "source": "synthetic-local-seed",
+        "generatedByAI": false
+      },
+      "createdAt": "2026-09-13T11:16:48.959Z"
+    }
+  ],
+  "validationRuns": [],
+  "approvals": []
+}

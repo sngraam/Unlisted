@@ -12,6 +12,7 @@ generator client {
 enum UserAccountType {
   INDIVIDUAL @map("individual")
   AGENCY     @map("agency")
+  FREELANCE 
 }
 
 enum MarketplacePlatform {
@@ -167,7 +168,7 @@ model ValidationLog {
 
 // ==========================================
 // PHASE 3: DASHBOARD & PUBLISHING
-// ==========================================
+
 
 model PublishJob {
   id                      String           @id @default(uuid()) @db.Uuid
