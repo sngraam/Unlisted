@@ -1,5 +1,7 @@
 # AI Listing Agent — frontend
 
+For Vercel builds, runtime environment variables and hosted database setup, see [VERCEL.md](VERCEL.md).
+
 > **2026-09-13 local database update:** Sign-in and workspace persistence now use local PostgreSQL + Prisma. See [local database guide](../test/README.md) for startup, seed data and account details. Earlier prototype-only sections below are historical where they conflict with this update.
 
 A Next.js 14 frontend prototype based on the supplied dark dashboard, login, connection, listing editor, and publish-dialog references. The existing FastAPI backend is not required for this preview.

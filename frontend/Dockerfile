@@ -16,7 +16,7 @@ COPY . .
 ENV NEXT_PUBLIC_API_URL=http://localhost:8000
 
 # Build Next.js application
-RUN npm run db:generate && npm run build
+RUN npm run build
 
 # Expose port 3000
 EXPOSE 3000

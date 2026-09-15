@@ -1,6 +1,14 @@
 # Project Memory
 
-Last reviewed: 2026-09-13.
+Last reviewed: 2026-09-15.
+
+## Latest update: Vercel clean-checkout build fix (2026-09-15)
+
+- User's deployment log for commit `daec123` stopped at `next build`; it did not include the final error. Reproduced a real defect using an isolated archive of that exact commit: webpack build failed and TypeScript reported TS2307 for `@/generated/prisma/client`. The generated client is gitignored, but the previous build only ran `next build`.
+- `frontend/package.json` now builds with `prisma generate && next build`. Node is pinned to `22.x` in the manifest/lockfile and `frontend/.nvmrc`. Docker uses the same build command without duplicate generation.
+- Added `frontend/VERCEL.md` with root directory/build/runtime settings and hosted database instructions; linked it from frontend README. Added `APP_ORIGIN` to `.env.example`. Hosted login requires a network-accessible PostgreSQL database plus the correct HTTPS app origin. The laptop database and dummy account do not automatically transfer to Vercel. Local seed restrictions remain intact; builds do not run migrations or seeds.
+- First verification passed all 22 routes in an isolated checkout using existing installed dependencies and no local env/generated files. A second verification uses Node 22.23.2 and a fresh `npm ci --ignore-scripts`; Prisma's explicit build-time generation succeeded. The second build also passed compilation, TypeScript checks and all 22 routes; evidence is recorded in VERCEL.md.
+- No remote deployment, Git push or database changes were performed in this fix. Project servers previously stopped at the user's request were not restarted.
 
 ## Latest update: local PostgreSQL and authenticated catalog
 
