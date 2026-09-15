@@ -129,14 +129,13 @@ const rejectsCode = (promise, code) =>
 
 before(async () => {
   db = await PGlite.create({ extensions: { vector } });
-  const migration = await readFile(
-    new URL(
-      "../prisma/migrations/20260913000000_initial_catalog/migration.sql",
-      import.meta.url,
-    ),
-    "utf8",
-  );
-  await db.exec(migration);
+  const migrations = [
+    "../prisma/migrations/20260913000000_initial_catalog/migration.sql",
+    "../prisma/migrations/20260913010000_sessions/migration.sql",
+    "../prisma/migrations/20260915000000_usernames/migration.sql",
+  ];
+  for (const path of migrations)
+    await db.exec(await readFile(new URL(path, import.meta.url), "utf8"));
   first = await fixture("first");
   second = await fixture("second");
 });
@@ -144,15 +143,38 @@ after(async () => {
   await db?.close();
 });
 
-test("migration creates all 21 application tables and pgvector", async () => {
+test("migrations create all 22 application tables and pgvector", async () => {
   const tables = await db.query(
     "SELECT count(*)::int AS count FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'",
   );
-  assert.equal(tables.rows[0].count, 21);
+  assert.equal(tables.rows[0].count, 22);
   const extension = await db.query(
     "SELECT extname FROM pg_extension WHERE extname='vector'",
   );
   assert.equal(extension.rows[0].extname, "vector");
+});
+test("login IDs are optional, normalized, and unique", async () => {
+  await insert("users", {
+    username: "seller.one",
+    email: "seller-one@example.com",
+    display_name: "Seller One",
+  });
+  await rejectsCode(
+    insert("users", {
+      username: "Seller.Two",
+      email: "seller-two@example.com",
+      display_name: "Seller Two",
+    }),
+    "23514",
+  );
+  await rejectsCode(
+    insert("users", {
+      username: "seller.one",
+      email: "seller-three@example.com",
+      display_name: "Seller Three",
+    }),
+    "23505",
+  );
 });
 test("workspace cannot use another team’s folder", async () => {
   await rejectsCode(

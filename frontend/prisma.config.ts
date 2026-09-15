@@ -1,5 +1,5 @@
 // Prisma CLI configuration. Local-only schema commands work without database credentials.
-// Real migration commands require DATABASE_URL; this file does not invent a fallback database.
+// Migrations prefer a direct/session-pooled URL; runtime traffic uses DATABASE_URL.
 import { config } from "dotenv";
 import { defineConfig } from "prisma/config";
 
@@ -9,7 +9,11 @@ config();
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: { path: "prisma/migrations" },
-  ...(process.env.DATABASE_URL
-    ? { datasource: { url: process.env.DATABASE_URL } }
+  ...(process.env.DIRECT_URL || process.env.DATABASE_URL
+    ? {
+        datasource: {
+          url: process.env.DIRECT_URL || process.env.DATABASE_URL!,
+        },
+      }
     : {}),
 });

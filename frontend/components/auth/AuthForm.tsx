@@ -21,7 +21,7 @@ export default function AuthForm({ signup = false }: { signup?: boolean }) {
           <p>
             {signup
               ? "Use your invitation to join your team and create marketplace-ready listings."
-              : "Enter your email and password to continue. This workspace is available to invited sellers."}
+              : "Enter your login ID and password to continue. This workspace is available to invited sellers."}
           </p>
           <span className="auth-badge">
             <LockKeyhole size={11} />
@@ -42,7 +42,7 @@ export default function AuthForm({ signup = false }: { signup?: boolean }) {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                  email: name.trim().toLowerCase(),
+                  identifier: name.trim().toLowerCase(),
                   password,
                 }),
               });
@@ -72,7 +72,7 @@ export default function AuthForm({ signup = false }: { signup?: boolean }) {
           )}
           <label className="field">
             <span className="field-label">
-              {signup ? "Display name" : "Email address"}
+              {signup ? "Display name" : "Login ID"}
             </span>
             <div className="input-with-icon">
               <UserCircle2 size={16} />
@@ -80,8 +80,8 @@ export default function AuthForm({ signup = false }: { signup?: boolean }) {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="you@example.com"
-                type={signup ? "text" : "email"}
+                placeholder={signup ? "Your name" : "Enter your login ID"}
+                type="text"
                 autoComplete="username"
               />
             </div>

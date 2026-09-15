@@ -1,11 +1,12 @@
-// Run from frontend: npm run db:seed. Add missing synthetic records; never overwrite edits on reruns.
+// Run from frontend: npm run db:seed. Add missing fixtures and reset only the local demo login.
 import { config } from "../frontend/node_modules/dotenv/lib/main.js";
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { randomBytes, createHash } from "node:crypto";
+import { createHash } from "node:crypto";
 import { PrismaClient } from "../frontend/generated/prisma/client";
 import { PrismaPg } from "../frontend/node_modules/@prisma/adapter-pg";
 import { hashPassword } from "../frontend/lib/server/password";
+import { seedDataSchema } from "./seed-contract";
 const root = resolve(process.cwd(), "..");
 config({ path: resolve(root, "frontend/.env.local") });
 const url = new URL(process.env.DATABASE_URL || "");
@@ -20,8 +21,8 @@ if (
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: url.toString() }),
 });
-const seed = JSON.parse(
-  readFileSync(resolve(root, "test/seed-data.json"), "utf8"),
+const seed = seedDataSchema.parse(
+  JSON.parse(readFileSync(resolve(root, "test/seed-data.json"), "utf8")),
 );
 function id(key: string) {
   const h = createHash("sha256")
@@ -30,7 +31,7 @@ function id(key: string) {
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-a${h.slice(17, 20)}-${h.slice(20, 32)}`;
 }
 async function main() {
-  const password = "Listing-" + randomBytes(6).toString("hex") + "!";
+  const password = "sngram";
   const userId = id("user"),
     teamId = id("team"),
     workspaceId = id("workspace"),
@@ -42,14 +43,26 @@ async function main() {
     throw new Error(
       "Seed email already belongs to another account; no data changed.",
     );
+  const usernameOwner = await prisma.user.findUnique({
+    where: { username: seed.profile.username },
+  });
+  if (usernameOwner && usernameOwner.id !== userId)
+    throw new Error(
+      "Seed username already belongs to another account; no data changed.",
+    );
   const passwordHash = await hashPassword(password);
   await prisma.$transaction(
     async (tx) => {
       await tx.user.upsert({
         where: { id: userId },
-        update: {},
+        update: {
+          username: seed.profile.username,
+          displayName: seed.profile.name,
+          passwordHash,
+        },
         create: {
           id: userId,
+          username: seed.profile.username,
           email: seed.profile.email,
           displayName: seed.profile.name,
           accountType: "AGENCY",
@@ -174,20 +187,14 @@ async function main() {
     },
     { timeout: 60000 },
   );
-  if (!existed) {
-    const location = resolve(root, "test/local-login.txt");
-    if (existsSync(location))
-      throw new Error(
-        "Account created; an older login file exists. Preserve it and use a deliberate local password reset if needed.",
-      );
-    writeFileSync(
-      location,
-      `Local development only\nURL: http://localhost:3000/login\nEmail: ${seed.profile.email}\nPassword: ${password}\nUser ID: ${userId}\nWorkspace ID: ${workspaceId}\n`,
-      { mode: 0o600 },
-    );
-  }
+  const location = resolve(root, "test/local-login.txt");
+  writeFileSync(
+    location,
+    `Local development only\nURL: http://localhost:3000/login\nLogin ID: ${seed.profile.username}\nPassword: ${password}\nEmail: ${seed.profile.email}\nUser ID: ${userId}\nWorkspace ID: ${workspaceId}\n`,
+    { mode: 0o600 },
+  );
   console.log(
-    "Seed ready: 1 account, 1 team, 1 workspace, 12 sample products. Existing edits/passwords preserved. Login details: test/local-login.txt",
+    `Seed ready: 1 account, 1 team, 1 workspace, ${seed.products.length} sample products. Demo login reset to ${seed.profile.username}. Existing product edits preserved. Login details: test/local-login.txt`,
   );
 }
 main().finally(() => prisma.$disconnect());

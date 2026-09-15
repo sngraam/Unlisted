@@ -2,7 +2,8 @@
   "version": 1,
   "description": "Synthetic development catalog. Historical display statuses are fixture labels, never evidence of marketplace publication.",
   "profile": {
-    "name": "Rajesh Sharma",
+    "username": "sngram",
+    "name": "Sangram",
     "email": "rajesh@example.com",
     "type": "Agency",
     "workspace": "Sharma Exports",

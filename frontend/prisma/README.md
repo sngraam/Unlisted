@@ -2,7 +2,7 @@
 
 > **2026-09-13 local database update:** Sign-in and workspace persistence now use local PostgreSQL + Prisma. See [local database guide](../../test/README.md) for startup, seed data and account details. Earlier prototype-only sections below are historical where they conflict with this update.
 
-`schema.prisma` is the canonical database design. The earlier `../../test/data.prisma` remains untouched as a historical reference. The frontend still uses local demo state; this change does not connect the UI to a database or replace the Python backend.
+`schema.prisma` is the canonical database design. The earlier `../../test/data.prisma` remains untouched as a historical reference. The frontend reads and writes this schema through authenticated Next.js server routes; the Python backend is not required for the current database-backed slice.
 
 ## Design decisions
 
@@ -50,7 +50,7 @@ erDiagram
 
 | Model                 | Purpose                                                                |
 | --------------------- | ---------------------------------------------------------------------- |
-| User                  | Person, normalized email, optional password hash, account type         |
+| User                  | Person, normalized login ID/email, optional password hash, account type |
 | AuthIdentity          | Google provider subject linked to a user                               |
 | Team                  | Agency/company/personal ownership boundary                             |
 | TeamMembership        | User's role in one team                                                |
@@ -76,7 +76,7 @@ erDiagram
 
 | Current frontend field                                  | Database destination                                                           |
 | ------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `profile.name`, `email`, `type`                         | User displayName/email/accountType                                             |
+| `profile.username`, `name`, `email`, `type`             | User username/displayName/email/accountType                                    |
 | `profile.team`, `workspace`                             | Team and Workspace names                                                       |
 | `brand.name`, `tone`, `painPoints`                      | BrandContext fields                                                            |
 | `brand.glossary` comma-delimited input                  | BrandContext.glossary object, e.g. phrase-to-definition entries                |

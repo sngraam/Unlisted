@@ -6,7 +6,9 @@
 Future maintainers: update task status and evidence here; put architectural context and
 session handoffs in Memory.md. Do not mark simulated functionality as production work. -->
 
-Last reconciled with the repository: **2026-09-13**.
+Last reconciled with the repository: **2026-09-15**.
+
+> **Dataset/auth update (2026-09-15):** The local dataset now has a runtime contract and complete frontend-to-Prisma mapping in `test/DATASET.md`. A normalized username migration is applied; the local demo login is `sngram` / `sngram`. All three migrations, the production build, 9 prototype tests, 18 schema tests, dataset validation and authenticated local integration passed. Hosted authentication and production credential policy remain open work.
 
 ## 1. Product outcome
 

@@ -13,33 +13,39 @@ export async function POST(request: Request) {
     requireOrigin(request);
     const input = z
       .object({
-        email: z
-          .email()
+        identifier: z
+          .string()
+          .trim()
+          .min(3)
           .max(320)
-          .transform((s) => s.trim().toLowerCase()),
+          .transform((s) => s.toLowerCase()),
         password: z.string().min(1).max(256),
       })
       .parse(await readJson(request));
     for (const [key, value] of Array.from(limits))
       if (value.until < Date.now()) limits.delete(key);
-    const attempt = limits.get(input.email) || {
+    const attempt = limits.get(input.identifier) || {
       count: 0,
       until: Date.now() + 15 * 60000,
     };
     if (attempt.count >= 10 || limits.size > 5000)
       throw new HttpError(429, "Too many attempts. Try again in 15 minutes.");
     attempt.count++;
-    limits.set(input.email, attempt);
-    const user = await db().user.findUnique({ where: { email: input.email } });
+    limits.set(input.identifier, attempt);
+    const user = await db().user.findFirst({
+      where: {
+        OR: [{ username: input.identifier }, { email: input.identifier }],
+      },
+    });
     dummyHash ||= hashPassword("unusable-placeholder-password");
     const valid = await verifyPassword(
       input.password,
       user?.passwordHash || (await dummyHash),
     );
     if (!valid || !user || user.deletedAt || !user.passwordHash)
-      throw new HttpError(401, "Email or password is incorrect.");
+      throw new HttpError(401, "Login ID or password is incorrect.");
     await createSession(user.id);
-    limits.delete(input.email);
+    limits.delete(input.identifier);
     return NextResponse.json({ ok: true });
   } catch (error) {
     return apiError(error);

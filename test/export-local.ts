@@ -28,7 +28,13 @@ async function main() {
             some: { team: { workspaces: { some: { id: workspaceId } } } },
           },
         },
-        select: { id: true, email: true, displayName: true, accountType: true },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          displayName: true,
+          accountType: true,
+        },
       }),
       teams: await tx.team.findMany({
         where: { workspaces: { some: { id: workspaceId } } },

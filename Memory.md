@@ -2,6 +2,40 @@
 
 Last reviewed: 2026-09-15.
 
+## Latest update: local database migrated to Supabase (2026-09-15)
+
+- User explicitly authorized the supplied Supabase project and provided its database password. The password was percent-encoded only in a mode-0600 temporary file under `/tmp`; it was not written to the repository, docs, snapshots or displayed in verification output.
+- Verified the target session pooler and found an empty `public` schema. Applied all three committed Prisma migrations successfully, including pgvector, sessions and normalized usernames.
+- Created a private, gitignored data-only local dump and restored it atomically to Supabase. Prisma migration history and browser sessions were excluded. Remote verification returned 1 user, 12 products, 12 variants, 12 marketplace listings, 12 listing revisions, 0 sessions, 3 successful migrations and the `vector` extension. User `sngram` has a password hash.
+- Verified the application path through Prisma 7.10 + `@prisma/adapter-pg` + Supabase transaction pooling: `User.username=sngram` and 12 products were returned. The working runtime URL needs `pgbouncer=true&uselibpqcompat=true&sslmode=require`; the session/migration URL uses `sslmode=require`. Updated `.env.example`, `SUPABASE.md` and `VERCEL.md` accordingly without project credentials.
+- The Supabase data migration is complete. The repository has no local Vercel project link or exact deployed origin, so Vercel still needs the completed transaction URL, pool size 1 and exact `APP_ORIGIN` configured in its private environment before hosted login can be verified.
+
+## Latest update: validated dataset, username login and live local verification (2026-09-15)
+
+- Added optional, unique, normalized `User.username` through `frontend/prisma/migrations/20260915000000_usernames/migration.sql`. Login now accepts a `Login ID` and still accepts an email identifier for existing accounts.
+- The local demo account is now `sngram` / `sngram`; `test/seed-local.ts` hashes the password with scrypt and resets only this local credential on each deliberate seed. The UI/profile display name is Sangram. This weak credential is local-demo-only.
+- Added `test/seed-contract.ts`, `test/validate-seed.ts` and `test/DATASET.md`. All 12 products and 12 variants are validated before seeding, and every frontend field has an explicit normalized Prisma destination or documented temporary JSON location.
+- Applied all three migrations to `listing_agent_local`, merged the seed without overwriting existing product edits, and refreshed the credential-free `test/database-snapshot.json`. The snapshot contains username/profile plus 12 products, variants, listings and revisions, with no password/token/secret fields.
+- Production build passed for 22 routes. Dataset validation, 9 prototype tests, 18 complete-migration/constraint tests and the authenticated local API integration suite passed. Direct login with `sngram` created a session and returned 12 PostgreSQL products; browser login visibly opened the populated catalog.
+- Local PostgreSQL remains running at `127.0.0.1:5433` and Next development server at `http://localhost:3000`. The user-facing browser is left on `http://localhost:3000/dashboard/skus`.
+
+## Latest update: Supabase pooled PostgreSQL configuration (2026-09-15)
+
+- User supplied password-placeholder connection templates for a Supabase project: transaction pooler on 6543 and session pooler on 5432. No actual database password was supplied or stored, and no remote database was accessed.
+- `frontend/prisma.config.ts` now prefers `DIRECT_URL` for Prisma CLI migrations and falls back to `DATABASE_URL` for local compatibility. The Next.js runtime continues using only `DATABASE_URL`.
+- `frontend/lib/server/db.ts` now creates a small node-postgres client pool, defaulting to one connection per Vercel instance (`DATABASE_POOL_MAX`, bounded 1–10), with connection/idle timeouts. This matches a low-traffic serverless start and reduces pool exhaustion risk.
+- Added `frontend/SUPABASE.md` with pgvector enablement, private environment setup, schema migration, data-only local dump/restore excluding migration history and sessions, expected record counts, Vercel variables and end-to-end verification. Vercel docs now identify Supabase as the selected path while preserving Render as an alternative.
+- Updated `.env.example` with placeholder-only pooled/direct URLs and pool size. No secret or supplied project-specific URL was committed. `test/*.dump` remains ignored because a dataset dump includes the dummy user's password hash.
+- Prisma validation, all 9 prototype tests, and a Node 22 production build covering all 22 routes passed. Build output was isolated from normal `.next`; no project server or local PostgreSQL service was started.
+
+## Latest update: Render PostgreSQL deployment path (2026-09-15)
+
+- Clarified the current deployed architecture: browser → Vercel Next.js pages/API routes → Render PostgreSQL. A separate Render/Python backend is not required for the implemented database-backed frontend slice.
+- Added `frontend/RENDER-POSTGRES.md` covering creation of an empty Render PostgreSQL 16 database, Singapore-region suggestion for an India-first MVP, pgvector support, local `pg_dump`/Render `pg_restore`, verification, Vercel `DATABASE_URL`/`APP_ORIGIN`, preview isolation, pooling and safe operation order. Linked it from `frontend/VERCEL.md`.
+- Added `test/*.dump` to `.gitignore` because a full dump contains account records and password hashes. `test/database-snapshot.json` remains inspection-only and cannot restore the normalized database.
+- Render Free PostgreSQL is documented as temporary testing infrastructure: 1 GB, 30-day expiry, no managed backups and no managed pooling. The local dummy login is copied by a full database restore, but must not be treated as production authentication.
+- No Render resource was created, no database dump was generated, no hosted database was mutated and no project servers were restarted. External Render credentials are still required before any hosted transfer.
+
 ## Latest update: Vercel clean-checkout build fix (2026-09-15)
 
 - User's deployment log for commit `daec123` stopped at `next build`; it did not include the final error. Reproduced a real defect using an isolated archive of that exact commit: webpack build failed and TypeScript reported TS2307 for `@/generated/prisma/client`. The generated client is gitignored, but the previous build only ran `next build`.

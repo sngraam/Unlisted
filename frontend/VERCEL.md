@@ -1,14 +1,16 @@
 # Deploying the frontend on Vercel
 
+For the selected Vercel → Supabase PostgreSQL setup, see [SUPABASE.md](SUPABASE.md). The earlier Render alternative remains documented in [RENDER-POSTGRES.md](RENDER-POSTGRES.md).
+
 ## Project settings
 
-| Setting | Value |
-| --- | --- |
-| Root Directory | `frontend` |
-| Framework | Next.js |
-| Node.js | `22.x` |
-| Install Command | Default, or `npm ci` |
-| Build Command | `npm run build` |
+| Setting          | Value                            |
+| ---------------- | -------------------------------- |
+| Root Directory   | `frontend`                       |
+| Framework        | Next.js                          |
+| Node.js          | `22.x`                           |
+| Install Command  | Default, or `npm ci`             |
+| Build Command    | `npm run build`                  |
 | Output Directory | Next.js default; do not override |
 
 `npm run build` now runs `prisma generate && next build`. The generated client is intentionally gitignored; every clean deployment must generate it before compiling the server modules. This is a local build step and does not connect to or migrate a database. It also avoids relying on an install lifecycle hook that may be skipped by package-manager policy. [Prisma's Vercel deployment documentation](https://www.prisma.io/docs/orm/v7/prisma-client/deployment/serverless/deploy-to-vercel).
@@ -19,7 +21,7 @@ Node is constrained to major version 22 so Vercel does not automatically select 
 
 Set these server-side environment variables for the deployment environment in Vercel:
 
-- `DATABASE_URL`: a network-accessible PostgreSQL connection URL, with the database provider's required TLS configuration. The database needs pgvector for the existing migration. The laptop's `127.0.0.1:5433` URL cannot connect Vercel to this project's local database.
+- `DATABASE_URL`: the Supabase transaction-pooler URL on port 6543, ending in `?pgbouncer=true&uselibpqcompat=true&sslmode=require`. The database needs pgvector for the existing migration. The laptop's `127.0.0.1:5433` URL cannot connect Vercel to this project's local database.
 - `APP_ORIGIN`: the exact app origin, such as `https://your-project.vercel.app`, without a trailing slash. The login and mutation routes require it to match the browser's Origin header. A preview/custom domain needs its matching configuration.
 
 Do not set either variable with a `NEXT_PUBLIC_` prefix, and do not upload `.env.local` or `test/local-login.txt`. Redeploy after changing Vercel environment variables.

@@ -80,7 +80,7 @@ async function account(role: "OWNER" | "VIEWER" = "OWNER") {
     },
   });
   const result = await api("/api/auth/login", "POST", {
-    email,
+    identifier: email,
     password: testPassword,
   });
   assert.equal(result.status, 200);
@@ -95,7 +95,7 @@ async function main() {
   assert.equal(
     (
       await api("/api/auth/login", "POST", {
-        email: "invalid@example.com",
+        identifier: "invalid@example.com",
         password: "wrongpass",
       })
     ).status,
@@ -210,7 +210,7 @@ async function main() {
     200,
   );
   const freshLogin = await api("/api/auth/login", "POST", {
-    email: owner.email,
+    identifier: owner.email,
     password: testPassword,
   });
   const reloaded = await api(

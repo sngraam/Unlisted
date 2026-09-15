@@ -113,6 +113,8 @@ enum MediaRole {
 // A person may join multiple teams. Roles are membership data, not global user properties.
 model User {
   id              String      @id @default(uuid()) @db.Uuid
+  // Lowercase human-readable login ID. Email sign-in remains supported for compatibility.
+  username        String?     @unique @db.VarChar(64)
   email           String      @unique @db.VarChar(320)
   displayName     String      @map("display_name") @db.VarChar(255)
   passwordHash    String?     @map("password_hash") @db.Text

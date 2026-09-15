@@ -59,3 +59,4 @@ Thumbs.db
 # Project-local PostgreSQL binaries, database cluster and private connection settings.
 /.local/
 /test/local-login.txt
+/test/*.dump

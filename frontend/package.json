@@ -15,6 +15,7 @@
     "db:studio": "prisma studio",
     "test:db": "node tests/database-schema.test.mjs",
     "test:prototype": "node tests/prototype.test.cjs",
+    "test:dataset": "tsx ../test/validate-seed.ts",
     "db:seed": "tsx ../test/seed-local.ts",
     "db:local:start": "bash ../test/postgres.sh start",
     "db:local:stop": "bash ../test/postgres.sh stop",

@@ -13,7 +13,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`. The root redirects to `/dashboard/skus` so the prototype is immediately explorable. `/login` opens the invitation-only sign-in design.
+Open `http://localhost:3000/login` and use the local account documented in `../test/README.md`. After sign-in, the app opens `/dashboard/skus`.
 
 ```bash
 npm run build
@@ -26,7 +26,7 @@ To verify a production build while the development server keeps running, use `NE
 
 | Route                         | Purpose                                                          |
 | ----------------------------- | ---------------------------------------------------------------- |
-| `/login`, `/signup`           | Simulated sign-in and invitation acceptance                      |
+| `/login`, `/signup`           | PostgreSQL-backed sign-in; invitation acceptance is pending      |
 | `/onboarding/profile`         | Individual, Agency, or Freelance profile                         |
 | `/onboarding/details`         | Person, team, and workspace details                              |
 | `/onboarding/brand`           | Brand voice, glossary, banned terms, customer needs              |
@@ -52,8 +52,8 @@ To verify a production build while the development server keeps running, use `NE
 - `components/listing/PublishSelector.tsx`: human approval and review CSV export.
 - `components/brand/BrandContextForm.tsx`: shared brand input contract.
 - `components/ui/`: shared logo, marketplace badges, and keyboard-accessible modal.
-- `lib/stores/workspaceStore.tsx`: local-demo state and persistence; replace with authenticated API operations later.
-- `lib/demo-data.ts`: the twelve sample catalog records.
+- `lib/stores/workspaceStore.tsx`: authenticated API cache and persisted workspace mutations.
+- `../test/seed-data.json`: the twelve validated sample catalog records.
 - `lib/csv.ts`: CSV parser, formula-safe cells, variant-row export.
 - `lib/validation.ts`: prototype review rules, deliberately separate from UI.
 - `types/sku.ts`: product, variant, marketplace, and status contracts.
@@ -64,7 +64,7 @@ Unused pre-existing scaffold files remain explicitly marked as reserved for futu
 
 Search SKU/name/brand; status, channel, and date filters; multi-selection; pagination; CSV import preview with required-column, duplicate-SKU, price, stock, size, and row-limit checks; review CSV export; new products and variants; optional local image uploads; title/bullet/description/keyword editing; sample generation; local rule checks; approval gating; profile/brand edits; connection-state previews; mobile navigation; error/empty states.
 
-The demo is intentionally browser-local. It uses `listing-agent-demo-v1` in localStorage. Clearing that key resets the catalog and profile to seed data. Passwords and invitation tokens are never persisted or sent anywhere.
+The local MVP stores workspace and catalog data in PostgreSQL. Browser state is only a cache of authenticated API responses; it does not store passwords or session tokens. Seeded status labels are presentation fixtures and do not claim live marketplace publication.
 
 ## Interface and typography
 
@@ -78,7 +78,7 @@ Browser verification and remaining limits are recorded in [`UI-REVIEW.md`](UI-RE
 
 ## Demo integration boundaries
 
-There is no real authentication, invitation verification, OAuth, database connection, AI inference, background processing, or marketplace publishing. Seeded Processing/Published statuses are sample records. Connections are labeled as simulated. Direct API publishing is disabled. Sample generation is deterministic text, and its claims still need human verification.
+Password authentication, server sessions and PostgreSQL catalog persistence work locally. Invitation verification, OAuth, AI inference, background processing and marketplace publishing remain pending. Seeded Processing/Published statuses are sample records. Connections are labeled as simulated. Direct API publishing is disabled. Sample generation is deterministic text, and its claims still need human verification.
 
 Export produces a **review CSV**, not an official Amazon/Flipkart category upload file. Prototype review checks are not marketplace certification. Uploaded images are small data URLs in browser storage; production uploads must use object storage. Approval is invalidated when content is edited and saved. Refreshing with unsaved editor changes prompts before discarding them.
 

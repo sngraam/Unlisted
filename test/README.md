@@ -1,6 +1,6 @@
 # Local PostgreSQL workspace
 
-The frontend now uses Next.js server routes + Prisma + PostgreSQL. `seed-data.json` is the source for the 12 synthetic catalog products, their variants/content, profile, team, workspace and brand settings. Existing `data.prisma` and `data.json` are preserved.
+The frontend now uses Next.js server routes + Prisma + PostgreSQL. `seed-data.json` is the source for the 12 synthetic catalog products, their variants/content, profile, team, workspace and brand settings. See `DATASET.md` for the exact frontend-to-Prisma mapping. Existing `data.prisma` and `data.json` are preserved.
 
 ## Start and sign in
 
@@ -15,7 +15,7 @@ npm run db:seed
 npm run dev -- --hostname 127.0.0.1
 ```
 
-Open http://localhost:3000/login. The generated dummy account email/password are in `test/local-login.txt` (gitignored, owner-readable). The seeded email is `rajesh@example.com`; the password is generated on the first seed. Rerunning seed does not reset the password or overwrite edited records. This account belongs only to the local development database.
+Open http://localhost:3000/login. Use login ID `sngram` and password `sngram`. The same local-only details are in `test/local-login.txt` (gitignored and owner-readable). Rerunning the seed resets this demo credential but preserves existing product edits. This account belongs only to the local development database and must not be copied to a public deployment.
 
 PostgreSQL 16.15 + pgvector 0.6.0 runs at `127.0.0.1:5433`, database `listing_agent_local`. The project owns its cluster; it is separate from any system PostgreSQL service. SCRAM authentication is enabled. Generated database credentials and persistent data are under ignored `.local/postgres/`. `frontend/.env.local` contains the private database URL and `APP_ORIGIN=http://localhost:3000`. Never prefix these with `NEXT_PUBLIC_`.
 
@@ -36,8 +36,10 @@ The runtime uses system libraries; if another machine is missing dependencies, i
 
 ## Data and checks
 
-- `seed-data.json`: editable seed input. Missing seed products are inserted; existing records are retained. It is not an automatic overwrite/synchronization mechanism.
-- `seed-local.ts`: repeatable seed using stable IDs and one transaction. Password is salted and hashed with scrypt.
+- `DATASET.md`: field ownership and frontend-to-Prisma mapping.
+- `seed-data.json`: editable seed input. Missing seed products are inserted; existing records are retained.
+- `seed-contract.ts` and `validate-seed.ts`: runtime validation for every dataset field; run `npm run test:dataset`.
+- `seed-local.ts`: repeatable seed using stable IDs and one transaction. The local demo password is salted and hashed with scrypt.
 - `database-snapshot.json`: exported normalized database records for inspection, excluding password hashes, sessions and credentials. This is a snapshot, not a restore-ready backup.
 - `export-local.ts`: refresh that snapshot with `cd frontend && npm run db:export:local`.
 - `frontend/tests/local-integration.ts`: run `npm run test:local` from `frontend` while the app/database are running. It creates separate temporary test tenants and cleans up only those records.
@@ -56,4 +58,4 @@ For this local iteration, uploaded raster images are bounded data URLs in produc
 
 ## Verified on 2026-09-13
 
-Production build/TypeScript checks passed for 22 routes. The 9 prototype tests, 17 initial-migration tests, and local authenticated API integration suite passed. Browser sign-in displayed the 12-record catalog and seeded listing editor. Seed reruns preserved the account and records. The only `git diff --check` warning was pre-existing trailing whitespace in the user’s `test/data.prisma`, left unchanged.
+Production build/TypeScript checks passed for 22 routes. Dataset validation, 9 prototype tests, 18 complete-migration tests, and the local authenticated API integration suite passed. Browser sign-in with `sngram` displayed the 12-record PostgreSQL catalog. Seed reruns preserve product edits while deliberately resetting the local demo credential. `git diff --check` passes.
