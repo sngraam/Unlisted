@@ -6,6 +6,8 @@ import { workspaceAccess, requireOrigin, HttpError } from "@/lib/server/auth";
 import { apiError, readJson } from "@/lib/server/http";
 import { readWorkspace, json } from "@/lib/server/catalog";
 import { auditListing, auditScore } from "@/lib/validation";
+import { templateGaps } from "@/lib/marketplace-template";
+import type { MarketplaceTemplate } from "@/types/marketplace-template";
 export async function POST(
   request: Request,
   { params }: { params: { id: string } },
@@ -19,7 +21,7 @@ export async function POST(
     const input = z
       .object({ updatedAt: z.iso.datetime() })
       .parse(await readJson(request));
-    const product = (await readWorkspace(access)).products.find(
+    const product = (await readWorkspace(access, [id])).products.find(
       (p) => p.id === id,
     );
     if (!product) throw new HttpError(404, "Product not found.");
@@ -34,6 +36,15 @@ export async function POST(
     );
     if (checks.some((c) => !c.passed && c.severity === "error"))
       throw new HttpError(400, "Resolve the review errors before approval.");
+    if (product.marketplace === "Amazon" && !product.templateId)
+      throw new HttpError(400, "Select and save an Amazon category before approval.");
+    if (product.marketplace === "Amazon" && product.templateId) {
+      const definition = await db().marketplaceTemplate.findUnique({ where: { id: product.templateId } });
+      if (!definition) throw new HttpError(409, "The saved Amazon template is unavailable.");
+      const gaps = templateGaps(product, definition as unknown as MarketplaceTemplate);
+      if (gaps.missing.length || gaps.invalid.length)
+        throw new HttpError(400, [...gaps.missing, ...gaps.invalid].slice(0, 3).map((gap) => `${gap.sku} — ${gap.label}: ${gap.message || "Complete this field with a valid template value."}`).join(" "));
+    }
     await db().$transaction(
       async (tx) => {
         const lock = await tx.product.updateMany({
@@ -42,7 +53,7 @@ export async function POST(
             workspaceId: access.workspace.id,
             updatedAt: new Date(input.updatedAt),
           },
-          data: { updatedAt: new Date() },
+          data: { updatedAt: new Date(Math.max(Date.now(), new Date(input.updatedAt).getTime() + 1)) },
         });
         if (!lock.count)
           throw new HttpError(409, "The listing changed. Review again.");
@@ -63,8 +74,10 @@ export async function POST(
           },
           include: { revisions: { orderBy: { number: "desc" }, take: 1 } },
         });
+        if (!listings.length) throw new HttpError(400, "No listing is available for review.");
         for (const listing of listings) {
           const revision = listing.revisions[0];
+          if (!revision) throw new HttpError(400, "Save listing content before approval.");
           const validation = await tx.validationRun.create({
             data: {
               revisionId: revision.id,
@@ -88,11 +101,12 @@ export async function POST(
                 approvedById: access.user.id,
               },
             });
+          await tx.marketplaceListing.update({ where: { id: listing.id }, data: { status: "READY" } });
         }
       },
       { isolationLevel: "Serializable" },
     );
-    return NextResponse.json(await readWorkspace(await workspaceAccess()));
+    return NextResponse.json(await readWorkspace(await workspaceAccess(), [id]));
   } catch (e) {
     return apiError(e);
   }

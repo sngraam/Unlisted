@@ -6,6 +6,25 @@ export type SkuStatus =
   | "Ready"
   | "Published"
   | "Failed";
+export type IntakeStatus = "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED" | "CANCELLED";
+export interface ProductSourceFile {
+  name: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+export interface ProductFeatureFact {
+  label: string;
+  value: string;
+}
+export interface ProductIntake {
+  productIdType: string;
+  materials: string;
+  dimensions: string;
+  features: ProductFeatureFact[];
+  sourceFiles: ProductSourceFile[];
+  status?: IntakeStatus;
+  statusMessage?: string;
+}
 export interface Variant {
   id: string;
   sku: string;
@@ -14,6 +33,11 @@ export interface Variant {
   mrp: number;
   price: number;
   stock: number;
+  countryOfOrigin?: string;
+  hsnCode?: string;
+  weightKg?: number | null;
+  // Exact row-5 keys from the selected marketplace template, scoped to this SKU.
+  channelAttributes?: Record<string, string>;
 }
 export interface Product {
   id: string;
@@ -21,6 +45,11 @@ export interface Product {
   name: string;
   brand: string;
   category: string;
+  productType?: string;
+  browseNodeId?: string;
+  templateId?: string;
+  categoryLocked?: boolean;
+  workbookExample?: { sourceFilename: string; definitionCount: number; skippedCount: number };
   marketplace: Marketplace;
   status: SkuStatus;
   score: number;
@@ -31,6 +60,8 @@ export interface Product {
   keywords: string;
   rawText: string;
   image?: string;
+  images?: string[];
+  intake?: ProductIntake;
   variants: Variant[];
   hsn: string;
   origin: string;

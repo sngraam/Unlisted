@@ -24,27 +24,25 @@ export function auditListing(
     .join(" ")
     .toLowerCase();
   const found = banned.filter((term) => text.includes(term));
+  const templated = !!product.templateId;
   return [
     {
       title: "Product title",
-      detail:
-        product.title.length +
-        " / 200 characters. Use a clear, descriptive title.",
-      passed: product.title.trim().length >= 20 && product.title.length <= 200,
+      detail: templated ? "Enter the verified product title. Category requirements are checked separately." : product.title.length + " / 200 characters. Use a clear, descriptive title.",
+      passed: templated ? !!product.title.trim() : product.title.trim().length >= 20 && product.title.length <= 200,
       severity: "error",
     },
     {
       title: "Brand name confirmation",
-      detail: "The title should begin with “" + product.brand + "”.",
-      passed:
-        !!product.brand &&
+      detail: templated ? "Confirm the product's actual brand." : "The title should begin with “" + product.brand + "”.",
+      passed: templated ? !!product.brand.trim() : !!product.brand &&
         product.title.toLowerCase().startsWith(product.brand.toLowerCase()),
       severity: "error",
     },
     {
       title: "Key bullet points",
-      detail: "Add five useful, nonempty product benefits.",
-      passed:
+      detail: templated ? "Required bullet points come from the selected category template." : "Add five useful, nonempty product benefits.",
+      passed: templated ? true :
         product.bullets.length === 5 &&
         product.bullets.every((b) => b.trim().length >= 10),
       severity: "error",

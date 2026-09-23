@@ -13,10 +13,52 @@ export class HttpError extends Error {
     super(message);
   }
 }
+
+function normalizedOrigin(value: string | null) {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol) ? url.origin : null;
+  } catch {
+    return null;
+  }
+}
+
+// Accept the origin that actually served this request. Vercel overwrites these forwarded
+// headers with the public alias/custom domain, so preview and production aliases stay usable.
+function requestOrigin(request: Request) {
+  const origins = new Set<string>();
+  const direct = normalizedOrigin(request.url);
+  if (direct) origins.add(direct);
+  if (process.env.VERCEL === "1") {
+    const host = request.headers
+      .get("x-forwarded-host")
+      ?.split(",")[0]
+      .trim();
+    const protocol = request.headers
+      .get("x-forwarded-proto")
+      ?.split(",")[0]
+      .trim();
+    const forwarded = normalizedOrigin(
+      host && protocol ? `${protocol}://${host}` : null,
+    );
+    if (forwarded) origins.add(forwarded);
+  }
+  const configured = normalizedOrigin(process.env.APP_ORIGIN || null);
+  if (configured) origins.add(configured);
+  return origins;
+}
+
 export function requireOrigin(request: Request) {
-  const expected = process.env.APP_ORIGIN || "http://localhost:3000";
-  if (request.headers.get("origin") !== expected)
+  const supplied = normalizedOrigin(request.headers.get("origin"));
+  if (!supplied || !requestOrigin(request).has(supplied))
     throw new HttpError(403, "Request origin is not allowed.");
+}
+
+export function isSecureRequest(request: Request) {
+  return Array.from(requestOrigin(request)).some((origin) =>
+    origin.startsWith("https://"),
+  );
 }
 export async function currentUser() {
   const token = cookies().get(SESSION_COOKIE)?.value;
@@ -40,10 +82,11 @@ export async function workspaceAccess(write = false) {
     orderBy: { createdAt: "asc" },
     include: {
       brandContext: true,
+      onboarding: true,
       team: { include: { memberships: { where: { userId: user.id } } } },
     },
   });
-  if (!workspace || !workspace.brandContext)
+  if (!workspace)
     throw new HttpError(
       403,
       "No active workspace is assigned to this account.",
@@ -56,7 +99,7 @@ export async function workspaceAccess(write = false) {
     );
   return { user, workspace, role };
 }
-export async function createSession(userId: string) {
+export async function createSession(userId: string, secure: boolean) {
   const token = randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + 7 * 86400000);
   await db().session.create({
@@ -65,7 +108,7 @@ export async function createSession(userId: string) {
   cookies().set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: (process.env.APP_ORIGIN || "").startsWith("https://"),
+    secure,
     path: "/",
     expires: expiresAt,
   });

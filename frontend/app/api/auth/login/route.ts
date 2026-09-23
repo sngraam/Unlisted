@@ -2,7 +2,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/server/db";
-import { createSession, HttpError, requireOrigin } from "@/lib/server/auth";
+import {
+  createSession,
+  HttpError,
+  isSecureRequest,
+  requireOrigin,
+} from "@/lib/server/auth";
 import { verifyPassword, hashPassword } from "@/lib/server/password";
 import { apiError, readJson } from "@/lib/server/http";
 export const runtime = "nodejs";
@@ -44,7 +49,7 @@ export async function POST(request: Request) {
     );
     if (!valid || !user || user.deletedAt || !user.passwordHash)
       throw new HttpError(401, "Login ID or password is incorrect.");
-    await createSession(user.id);
+    await createSession(user.id, isSecureRequest(request));
     limits.delete(input.identifier);
     return NextResponse.json({ ok: true });
   } catch (error) {

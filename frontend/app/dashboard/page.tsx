@@ -19,7 +19,7 @@ export default function DashboardPage() {
     { label: "Products in workspace", value: products.length, icon: Layers3 },
     {
       label: "Ready for your review",
-      value: products.filter((p) => p.status === "Ready").length,
+      value: products.filter((p) => p.status === "Ready" && !p.approved).length,
       icon: Sparkles,
     },
     {
@@ -85,7 +85,7 @@ export default function DashboardPage() {
                     {p.sku} · {p.brand}
                   </small>
                 </div>
-                <SkuStatusBadge status={p.status} />
+                <SkuStatusBadge status={p.status} approved={p.approved} />
               </Link>
             ))}
           {!products.some((p) =>

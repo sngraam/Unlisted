@@ -9,6 +9,8 @@ const variant = z.object({
   mrp: z.number().nonnegative(),
   price: z.number().nonnegative(),
   stock: z.number().int().nonnegative(),
+  countryOfOrigin: z.string().max(120).optional(),
+  channelAttributes: z.record(z.string(), z.string()).optional(),
 }).refine((value) => value.price <= value.mrp, "Variant price must not exceed MRP.");
 
 const product = z.object({
@@ -17,6 +19,9 @@ const product = z.object({
   name: z.string().trim().min(1).max(500),
   brand: z.string().trim().min(1).max(255),
   category: z.string().max(2000),
+  productType: z.string().optional(),
+  browseNodeId: z.string().optional(),
+  templateSha256: z.string().length(64).optional(),
   marketplace: z.enum(["Amazon", "Flipkart"]),
   status: z.enum(["Draft", "Ready", "Published", "Processing", "Failed"]),
   score: z.number().int().min(0).max(100),
@@ -32,6 +37,10 @@ const product = z.object({
   origin: z.string().max(120),
   weight: z.number().nonnegative(),
   approved: z.boolean(),
+  workbookExample: z.object({
+    sourceFilename: z.string(), sourceSha256: z.string().length(64), definitionCount: z.number().int(),
+    skipped: z.array(z.object({ label: z.string(), pattern: z.string(), example: z.string(), reason: z.string() })),
+  }).optional(),
 });
 
 export const seedDataSchema = z.object({

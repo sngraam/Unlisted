@@ -32,7 +32,7 @@ export default function HelpPage() {
           {
             icon: FileCheck2,
             title: "3. Approve and export",
-            body: "Confirm the product facts and download a review CSV. Official marketplace templates and direct publishing are future integrations.",
+            body: "Confirm your product facts, then download the filled Amazon category template as XLSM or CSV. Each SKU has its own row. Direct publishing is not connected yet.",
             href: "/dashboard/settings",
             link: "View marketplace settings",
           },

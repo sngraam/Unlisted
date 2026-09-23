@@ -15,6 +15,8 @@ import {
   UploadCloud,
 } from "lucide-react";
 import { Product } from "@/types/sku";
+import type { MarketplaceTemplate } from "@/types/marketplace-template";
+import { templateGaps, templateFieldDestination, type TemplateFieldFocus } from "@/lib/marketplace-template";
 import { useWorkspace } from "@/lib/stores/workspaceStore";
 import { auditListing, auditScore } from "@/lib/validation";
 import SkuStatusBadge from "@/components/sku/SkuStatusBadge";
@@ -22,18 +24,86 @@ import MarketplaceBadge from "@/components/ui/MarketplaceBadge";
 import ValidationErrors from "./ValidationErrors";
 import PublishSelector from "./PublishSelector";
 import VariantEditor from "./VariantEditor";
+import AmazonCategoryFields from "./AmazonCategoryFields";
 function Editor({ initial, review }: { initial: Product; review: boolean }) {
-  const { brand, products, updateProduct, notify, saving } = useWorkspace();
+  const { brand, products, updateProduct, notify, saving, reload } = useWorkspace();
   const [draft, setDraft] = useState<Product>(initial);
   const [tab, setTab] = useState("Listing content");
-  const sections = ["Listing content", "Variants & pricing", "Product details"];
+  const sections = ["Listing content", "Variants & pricing", "Product details", ...(draft.marketplace === "Amazon" ? ["Amazon attributes"] : [])];
   const [dirty, setDirty] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [busy, setBusy] = useState("");
+  const [selectedTemplate, setSelectedTemplate] = useState<MarketplaceTemplate | null>(null);
+  const [templateError, setTemplateError] = useState("");
+  const [attributeVariantId, setAttributeVariantId] = useState(initial.variants[0]?.id || "");
+  const [fieldFocus, setFieldFocus] = useState<TemplateFieldFocus | null>(null);
+  const [coreFocus, setCoreFocus] = useState<{ section: string; controlId: string } | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const bulletCount = selectedTemplate
+    ? Math.max(0, ...selectedTemplate.fields.filter((field) => field.attribute === "bullet_point").map((field) => Number(field.key.match(/#(\d+)/)?.[1] || 1)))
+    : Math.max(5, draft.bullets.length);
   const timer = useRef<ReturnType<typeof setTimeout>>();
   const checks = auditListing(draft, brand.bannedTerms);
   const score = auditScore(checks);
+  const passedChecks = checks.filter((check) => check.passed).length;
   const blocking = checks.some((c) => !c.passed && c.severity === "error");
+  const categoryGaps = selectedTemplate && draft.templateId === selectedTemplate.id
+    ? templateGaps(draft, selectedTemplate)
+    : null;
+  const categoryBlocking = !!draft.templateId &&
+    (!categoryGaps || categoryGaps.missing.length > 0 || categoryGaps.invalid.length > 0);
+  const categoryErrors = categoryGaps ? [...categoryGaps.missing, ...categoryGaps.invalid] : [];
+  // A cache refresh must update a pristine editor, while preserving unsaved edits.
+  useEffect(() => { if (!dirty) setDraft(initial); }, [initial, dirty]);
+  useEffect(() => {
+    if (!coreFocus || coreFocus.section !== tab) return;
+    const control = document.getElementById(coreFocus.controlId);
+    control?.focus({ preventScroll: true });
+    control?.scrollIntoView({ block: "center", inline: "nearest" });
+  }, [coreFocus, tab]);
+  function openTemplateField(variantId: string, key: string) {
+    const field = selectedTemplate?.fields.find((item) => item.key === key);
+    if (!field) return;
+    const destination = templateFieldDestination(field, variantId);
+    setTab(destination.section);
+    setAttributeVariantId(variantId);
+    setCoreFocus(destination.controlId ? destination : null);
+    setFieldFocus(destination.section === "Amazon attributes" ? { variantId, key } : null);
+  }
+  async function refreshSaved() {
+    if (dirty && !window.confirm("Discard your unsaved edits and load the saved listing?")) return;
+    setRefreshing(true);
+    if (await reload()) {
+      setDirty(false);
+      notify("Latest saved listing loaded.");
+    }
+    setRefreshing(false);
+  }
+  // Load the pinned version on page open, even before the attributes tab is visited.
+  // Review readiness must never depend on which tab the user happened to open.
+  useEffect(() => {
+    if (!draft.templateId) {
+      setSelectedTemplate(null);
+      setTemplateError("");
+      return;
+    }
+    const controller = new AbortController();
+    setSelectedTemplate(null);
+    setTemplateError("");
+    fetch(`/api/marketplace-templates?id=${encodeURIComponent(draft.templateId)}`, {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Category requirements are unavailable.");
+        return response.json() as Promise<{ template: MarketplaceTemplate }>;
+      })
+      .then(({ template }) => setSelectedTemplate(template))
+      .catch((error: Error) => {
+        if (error.name !== "AbortError") setTemplateError(error.message);
+      });
+    return () => controller.abort();
+  }, [draft.templateId]);
   useEffect(
     () => () => {
       if (timer.current) clearTimeout(timer.current);
@@ -88,7 +158,7 @@ function Editor({ initial, review }: { initial: Product; review: boolean }) {
     if (!saved) return false;
     setDraft(saved);
     setDirty(false);
-    notify("Listing saved to PostgreSQL.");
+    notify("Listing changes saved.");
     return true;
   }
   function generate(field: string) {
@@ -133,7 +203,7 @@ function Editor({ initial, review }: { initial: Product; review: boolean }) {
       else {
         const i = Number(field);
         const bullets = Array.from(
-          { length: 5 },
+          { length: bulletCount },
           (_, n) => draft.bullets[n] || "",
         );
         bullets[i] = [
@@ -142,7 +212,7 @@ function Editor({ initial, review }: { initial: Product; review: boolean }) {
           "Review the product details to confirm suitability for your needs.",
           "Check the size and specifications before placing your order.",
           "Follow the care instructions supplied with your product.",
-        ][i];
+        ][i] || "Review this detail against your supplier specifications.";
         patch({ bullets });
       }
       setBusy("");
@@ -179,18 +249,53 @@ function Editor({ initial, review }: { initial: Product; review: boolean }) {
           <ArrowLeft size={15} />
           Back to catalog
         </Link>
-        <div className="actions">
-          <span className="muted" style={{ fontSize: 11 }}>
-            {dirty ? "Unsaved changes" : "Saved to PostgreSQL"}
-          </span>
+        <div className="actions editor-actions">
           <button className="btn small" onClick={save} disabled={saving}>
             <Save size={14} />
             Save changes
+          </button>
+          <button
+            className="btn primary small"
+            disabled={blocking || categoryBlocking || !!busy || saving}
+            onClick={async () => {
+              if (await save()) setPublishing(true);
+            }}
+          >
+            <Check size={14} />
+            {draft.approved ? "Approved · export again" : "Approve & export"}
+          </button>
+          <button
+            className="btn small"
+            onClick={() => {
+              if (categoryErrors[0]) openTemplateField(categoryErrors[0].variantId, categoryErrors[0].key);
+              notify(
+                blocking
+                  ? "Review the highlighted issues before approval."
+                  : categoryBlocking
+                    ? "Complete the imported category requirements before approval."
+                    : "Review complete. No blocking prototype issues found.",
+              );
+            }}
+          >
+            <RotateCw size={14} />
+            Run listing audit
           </button>
         </div>
       </div>
       <div className="editor-grid">
         <aside>
+          <div
+            className="image-score"
+            aria-label={`Copy review score ${score} percent; ${passedChecks} of ${checks.length} checks passed`}
+          >
+            <strong>{score}%</strong>
+            <span className="image-score-track" aria-hidden="true">
+              <i style={{ width: `${score}%` }} />
+            </span>
+            <span className="image-score-count">
+              {passedChecks}/{checks.length}
+            </span>
+          </div>
           <div className="panel product-summary">
             <div className="product-preview">
               {draft.image ? (
@@ -210,7 +315,7 @@ function Editor({ initial, review }: { initial: Product; review: boolean }) {
               {draft.sku}
             </div>
             <h3>{draft.name}</h3>
-            <SkuStatusBadge status={draft.status} />
+            <SkuStatusBadge status={draft.status} approved={draft.approved} />
           </div>
           <div className="panel detail-card">
             <div className="eyebrow">PRODUCT DETAILS</div>
@@ -238,17 +343,41 @@ function Editor({ initial, review }: { initial: Product; review: boolean }) {
               </dd>
             </dl>
           </div>
+          <ValidationErrors checks={checks} />
+          {draft.marketplace === "Amazon" && draft.templateId && (
+            <div className={categoryBlocking ? "note category-review-summary" : "note info category-review-summary"}>
+              <p>
+              {categoryGaps
+                ? `${categoryGaps.missing.length} missing and ${categoryGaps.invalid.length} invalid XLSM answers across ${draft.variants.length} SKU(s). This is a template check, not Amazon approval.`
+                : templateError || "Loading category requirements…"}
+              </p>
+              <button type="button" className="btn small" disabled={refreshing || saving} onClick={refreshSaved}>{refreshing ? "Refreshing…" : "Refresh saved data"}</button>
+            </div>
+          )}
+          {categoryErrors.length > 0 && (
+            <ul className="category-error-list" aria-label="Category field errors">
+              {categoryErrors.map((gap) => <li key={`${gap.variantId}:${gap.key}`}>
+                <strong>{gap.sku} · {gap.label}</strong>
+                <p>{gap.message}</p>
+                <button type="button" className="btn small" aria-label={`Fix ${gap.label} for ${gap.sku}`} onClick={() => openTemplateField(gap.variantId, gap.key)}>Fix field →</button>
+              </li>)}
+            </ul>
+          )}
         </aside>
-        <section>
+        <section className="editor-main">
           <div className="editor-heading">
             <div className="eyebrow" style={{ marginBottom: 8 }}>
               {review ? "FINAL REVIEW" : "YOUR LISTING, REFINED"}
             </div>
-            <h1>AI copywriter workshop</h1>
-            <p>Fine-tune your content. Keep your brand’s voice.</p>
+            <h1>{review ? "Review every field" : "Listing workspace"}</h1>
+            <p>Review content, variant facts and category attributes before approval.</p>
+            {draft.workbookExample && <p className="note info">Sample from {draft.workbookExample.sourceFilename} → Data Definitions examples. These can describe unrelated products. Category and demo SKU are retained; {draft.workbookExample.skippedCount} incompatible examples are shown as guidance only.</p>}
           </div>
           <div
             className="editor-tabs"
+            style={{
+              gridTemplateColumns: `repeat(${sections.length}, minmax(0, 1fr))`,
+            }}
             role="tablist"
             aria-label="Editor sections"
           >
@@ -261,7 +390,7 @@ function Editor({ initial, review }: { initial: Product; review: boolean }) {
                 aria-selected={tab === t}
                 key={t}
                 className={tab === t ? "active" : ""}
-                onClick={() => setTab(t)}
+                onClick={() => { setTab(t); setFieldFocus(null); setCoreFocus(null); }}
                 onKeyDown={(event) => {
                   const next =
                     event.key === "Home"
@@ -276,6 +405,8 @@ function Editor({ initial, review }: { initial: Product; review: boolean }) {
                   if (next < 0) return;
                   event.preventDefault();
                   setTab(sections[next]);
+                  setFieldFocus(null);
+                  setCoreFocus(null);
                   event.currentTarget.parentElement
                     ?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
                     [next]?.focus();
@@ -285,6 +416,7 @@ function Editor({ initial, review }: { initial: Product; review: boolean }) {
               </button>
             ))}
           </div>
+          <div className="editor-scroll">
           {tab === "Listing content" && (
             <div
               className="panel"
@@ -294,9 +426,10 @@ function Editor({ initial, review }: { initial: Product; review: boolean }) {
             >
               <label className="editor-field" style={{ display: "block" }}>
                 <span className="field-label">
-                  Product title<span>{draft.title.length}/200</span>
+                  Product title<span>{draft.title.length} characters</span>
                 </span>
                 <textarea
+                  id="listing-title"
                   aria-label="Product title"
                   value={draft.title}
                   onChange={(e) => patch({ title: e.target.value })}
@@ -307,33 +440,26 @@ function Editor({ initial, review }: { initial: Product; review: boolean }) {
                 Key bullet points{" "}
                 <span className="muted" style={{ fontSize: 10 }}>
                   {" "}
-                  / 5 product benefits
+                  / {bulletCount} fields
                 </span>
               </div>
-              {Array.from({ length: 5 }, (_, i) => (
+              {Array.from({ length: bulletCount }, (_, i) => (
                 <label
                   className="editor-field"
                   style={{ display: "block" }}
                   key={i}
                 >
                   <span className="field-label">
-                    {
-                      [
-                        "Material & quality",
-                        "Design & features",
-                        "Everyday benefits",
-                        "Size & compatibility",
-                        "Care & use",
-                      ][i]
-                    }
+                    Bullet point {i + 1}
                     <span>{(draft.bullets[i] || "").length} characters</span>
                   </span>
                   <textarea
+                    id={`listing-bullet-${i}`}
                     aria-label={`Bullet point ${i + 1}`}
                     value={draft.bullets[i] || ""}
                     onChange={(e) => {
                       const bullets = Array.from(
-                        { length: 5 },
+                        { length: bulletCount },
                         (_, n) => draft.bullets[n] || "",
                       );
                       bullets[i] = e.target.value;
@@ -349,6 +475,7 @@ function Editor({ initial, review }: { initial: Product; review: boolean }) {
                   <span>{draft.description.length} characters</span>
                 </span>
                 <textarea
+                  id="listing-description"
                   aria-label="Product description"
                   style={{ minHeight: 190 }}
                   value={draft.description}
@@ -391,7 +518,9 @@ function Editor({ initial, review }: { initial: Product; review: boolean }) {
               </div>
               <VariantEditor
                 variants={draft.variants}
+                template={selectedTemplate}
                 onChange={(variants) => patch({ variants })}
+                onOpenAmazonField={openTemplateField}
               />
             </div>
           )}
@@ -412,30 +541,21 @@ function Editor({ initial, review }: { initial: Product; review: boolean }) {
                 {[
                   { key: "brand", label: "Brand" },
                   { key: "category", label: "Category path" },
-                  { key: "hsn", label: "HSN code" },
-                  { key: "origin", label: "Country of origin" },
                 ].map((f) => (
                   <label className="field" key={f.key}>
                     <span className="field-label">{f.label}</span>
                     <input
+                      id={`product-${f.key}`}
                       value={String(draft[f.key as keyof Product])}
+                      readOnly={f.key === "category" && !!draft.templateId}
                       onChange={(e) => patch({ [f.key]: e.target.value })}
                     />
                   </label>
                 ))}
                 <label className="field">
-                  <span className="field-label">Weight (kg)</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={draft.weight}
-                    onChange={(e) => patch({ weight: Number(e.target.value) })}
-                  />
-                </label>
-                <label className="field">
                   <span className="field-label">Marketplace</span>
                   <select
+                    disabled
                     value={draft.marketplace}
                     onChange={(e) =>
                       patch({
@@ -448,6 +568,7 @@ function Editor({ initial, review }: { initial: Product; review: boolean }) {
                   </select>
                 </label>
               </div>
+              <p className="field-hint">Origin, HSN and weight are saved separately for each SKU in Variants & pricing.</p>
               <label className="field">
                 <span className="field-label">Original product notes</span>
                 <textarea
@@ -490,65 +611,25 @@ function Editor({ initial, review }: { initial: Product; review: boolean }) {
               )}
             </div>
           )}
-        </section>
-        <aside className="editor-aside">
-          <div className="panel score-card">
-            <div className="eyebrow">LISTING SCORE</div>
-            <div className="score-large">
-              <strong
-                style={{
-                  color: score >= 85 ? "var(--green)" : "var(--yellow)",
-                }}
-              >
-                {score}%
-              </strong>
-              <span className={"status " + (blocking ? "processing" : "ready")}>
-                {blocking ? "Needs review" : "Ready to review"}
-              </span>
-            </div>
-            <div className="wide-track">
-              <span
-                style={{
-                  width: score + "%",
-                  background: score >= 85 ? "var(--green)" : "var(--yellow)",
-                }}
+          {tab === "Amazon attributes" && draft.marketplace === "Amazon" && (
+            <div role="tabpanel" id="editor-panel-3" aria-labelledby="editor-tab-3">
+              <AmazonCategoryFields
+                examplePreview={!!draft.workbookExample}
+                locked={!!draft.categoryLocked}
+                templateId={draft.templateId}
+                productType={draft.productType}
+                browseNodeId={draft.browseNodeId}
+                variants={draft.variants}
+                selectedVariantId={attributeVariantId}
+                onVariantChange={(id) => { setAttributeVariantId(id); setFieldFocus(null); }}
+                focusRequest={fieldFocus}
+                onClearFocus={() => setFieldFocus(null)}
+                onChange={(selection) => patch(selection)}
               />
             </div>
-            <p>
-              {checks.filter((c) => c.passed).length} of {checks.length}{" "}
-              prototype checks passed
-            </p>
-          </div>
-          <ValidationErrors checks={checks} />
-          <button
-            className="btn primary full"
-            disabled={blocking || !!busy || saving}
-            onClick={async () => {
-              if (await save()) setPublishing(true);
-            }}
-          >
-            <Check size={15} />
-            {draft.approved ? "Approved · export again" : "Approve & export"}
-          </button>
-          <button
-            className="btn full"
-            onClick={() =>
-              notify(
-                blocking
-                  ? "Review the highlighted issues before approval."
-                  : "Review complete. No blocking prototype issues found.",
-              )
-            }
-          >
-            <RotateCw size={14} />
-            Run listing audit
-          </button>
-          {blocking && (
-            <p className="field-hint" style={{ marginTop: 10 }}>
-              Resolve the red checks to approve this listing.
-            </p>
           )}
-        </aside>
+          </div>
+        </section>
       </div>
       {publishing && (
         <PublishSelector
@@ -581,6 +662,24 @@ export default function ListingEditor({
         <Link className="btn primary" href="/dashboard/skus">
           Back to catalog
         </Link>
+      </div>
+    );
+  if (product.status === "Processing")
+    return (
+      <div className="processing-state panel" role="status">
+        <div className="processing-orbit"><Sparkles size={22} /></div>
+        <div className="eyebrow">TASK QUEUE · PRODUCT INTAKE</div>
+        <h1>We’re preparing your listing</h1>
+        <p>
+          Your product facts and source files are safely queued. This page is
+          locked until extraction, catalog mapping, and validation finish.
+        </p>
+        <div className="processing-steps">
+          <span className="active"><i />Extract product facts</span>
+          <span><i />Map marketplace fields</span>
+          <span><i />Validate export template</span>
+        </div>
+        <Link className="btn primary" href="/dashboard/skus">Back to product catalog</Link>
       </div>
     );
   return <Editor key={id} initial={product} review={review} />;

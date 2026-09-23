@@ -60,3 +60,7 @@ Thumbs.db
 /.local/
 /test/local-login.txt
 /test/*.dump
+# Seller Central workbook packages can contain seller-specific settings and macros.
+/test/amazon-templates/inbox/*.xlsm
+/frontend/.next-verify/
+/frontend/private/amazon-templates/*.xlsm

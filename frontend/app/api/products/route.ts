@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const products = z
       .array(productInput)
       .min(1)
-      .max(500)
+      .max(50)
       .parse(await readJson(request));
     const ids = await db().$transaction(
       async (tx) => {
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       { timeout: 60000, isolationLevel: "Serializable" },
     );
     return NextResponse.json(
-      { state: await readWorkspace(access), ids },
+      { state: await readWorkspace(access, ids), ids },
       { status: 201 },
     );
   } catch (e) {

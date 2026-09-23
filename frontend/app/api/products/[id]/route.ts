@@ -19,7 +19,7 @@ export async function PUT(
       timeout: 30000,
       isolationLevel: "Serializable",
     });
-    return NextResponse.json(await readWorkspace(access));
+    return NextResponse.json(await readWorkspace(access, [input.id]));
   } catch (e) {
     return apiError(e);
   }

@@ -10,7 +10,7 @@ import {
 import Modal from "@/components/ui/Modal";
 import MarketplaceBadge from "@/components/ui/MarketplaceBadge";
 import { Product } from "@/types/sku";
-import { exportProducts } from "@/lib/csv";
+import { downloadListings } from "@/lib/listing-export";
 import { useWorkspace } from "@/lib/stores/workspaceStore";
 export default function PublishSelector({
   product,
@@ -21,29 +21,32 @@ export default function PublishSelector({
   onClose: () => void;
   onApproved: (product: Product) => void;
 }) {
-  const [route, setRoute] = useState("csv");
+  const [route, setRoute] = useState("file");
+  const [format, setFormat] = useState<"xlsm" | "csv">("xlsm");
+  const [downloading, setDownloading] = useState(false);
+  const [error, setError] = useState("");
   const [approved, setApproved] = useState(product.approved);
   const [target, setTarget] = useState(true);
   const { approveProduct, notify, saving } = useWorkspace();
   return (
-    <Modal title="Publish listing" onClose={onClose}>
+    <Modal title="Approve & download" onClose={onClose}>
       <p className="muted" style={{ fontSize: 12, marginBottom: 20 }}>
         Choose how to take your reviewed listing to market.
       </p>
       <div className="publish-options">
         <button
-          className={"publish-option " + (route === "csv" ? "selected" : "")}
-          onClick={() => setRoute("csv")}
-          aria-pressed={route === "csv"}
+          className={"publish-option " + (route === "file" ? "selected" : "")}
+          onClick={() => setRoute("file")}
+          aria-pressed={route === "file"}
         >
           <FileSpreadsheet size={22} />
-          <strong>Export CSV</strong>
-          <p>Download your listing and variant data for a final review.</p>
+          <strong>Amazon template</strong>
+          <p>Fill your category’s original Template tab with one row per SKU.</p>
           <span
             className="text-link"
             style={{ fontSize: 11, display: "block", marginTop: 12 }}
           >
-            Available now
+            {product.marketplace === "Amazon" ? "Available now" : "Amazon categories only"}
           </span>
         </button>
         <button
@@ -62,6 +65,13 @@ export default function PublishSelector({
           </span>
         </button>
       </div>
+      {route === "file" && <label className="field" style={{ marginTop: 20 }}>
+        <span className="field-label">Download format</span>
+        <select value={format} onChange={(event) => setFormat(event.target.value as "xlsm" | "csv")} disabled={downloading}>
+          <option value="xlsm">Excel template (.xlsm) — all tabs and dropdowns</option>
+          <option value="csv">Template tab (.csv) — same rows and column order</option>
+        </select>
+      </label>}
       <div className="eyebrow" style={{ marginTop: 25 }}>
         TARGET MARKETPLACE
       </div>
@@ -90,29 +100,37 @@ export default function PublishSelector({
       <div className="note">
         <AlertTriangle size={16} />
         <span>
-          {route === "csv"
-            ? "This is a review CSV. It is not an official marketplace upload template, and downloading does not publish your product."
+          {product.marketplace !== "Amazon" ? "Template downloads are currently available for imported Amazon categories."
+            : route === "file"
+            ? "Your approved values fill row 7 onward. The original headers and example row stay in place. Downloading does not publish the listing."
             : "Live publishing is not connected in this frontend preview. No listing will be sent to a marketplace."}
         </span>
       </div>
+      {error && <p className="error-text" role="alert">{error}</p>}
       <div className="modal-actions">
         <button className="btn" onClick={onClose}>
           Cancel
         </button>
         <button
           className="btn primary"
-          disabled={!approved || !target || route === "api" || saving}
+          disabled={!approved || !target || route === "api" || saving || downloading || product.marketplace !== "Amazon"}
           onClick={async () => {
-            const saved = await approveProduct(product);
-            if (!saved) return;
-            onApproved(saved);
-            exportProducts([saved]);
-            notify("Listing approved. Review CSV downloaded.");
-            onClose();
+            setDownloading(true);
+            setError("");
+            try {
+              const saved = product.approved ? product : await approveProduct(product);
+              if (!saved) return;
+              onApproved(saved);
+              await downloadListings([saved], format);
+              notify(`Amazon ${format.toUpperCase()} template downloaded.`);
+              onClose();
+            } catch (failure) {
+              setError(failure instanceof Error ? failure.message : "Download failed. Please try again.");
+            } finally { setDownloading(false); }
           }}
         >
           <CheckCircle2 size={15} />
-          {route === "csv" ? "Approve & download" : "API not connected"}
+          {downloading ? "Preparing download…" : route === "file" ? "Approve & download" : "API not connected"}
         </button>
       </div>
     </Modal>

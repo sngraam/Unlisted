@@ -1,77 +1,45 @@
 "use client";
-// Step 4: marketplace OAuth remains unavailable until a real seller integration is implemented.
-import Link from "next/link";
-import { ChevronRight, Check, LockKeyhole } from "lucide-react";
+// Step 3: choose target channels. OAuth can be attached later without changing intake data.
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ChevronRight, Check, ArrowRight, Store } from "lucide-react";
 import Logo from "@/components/ui/Logo";
 import StepProgress from "@/components/layout/StepProgress";
 import { useWorkspace } from "@/lib/stores/workspaceStore";
 import { Marketplace } from "@/types/sku";
 export default function ConnectPage() {
-  const { connections, notify } = useWorkspace();
+  const { connections } = useWorkspace();
+  const router = useRouter();
+  const [selected, setSelected] = useState<Marketplace[]>(connections.length ? connections : ["Amazon"]);
   return (
-    <section className="auth-card">
+    <section className="auth-card wide onboarding-card">
       <Logo compact />
-      <StepProgress step={4} />
+      <StepProgress step={3} />
       <div className="auth-heading">
-        <span className="eyebrow" style={{ color: "#9b9eff" }}>
-          ONE LAST THING
-        </span>
-        <h1 style={{ marginTop: 12 }}>Connect your store</h1>
-        <p>
-          Bring your products together. Prepare listings for the marketplaces
-          you sell on.
-        </p>
+        <span className="eyebrow">STEP 3 OF 4 · MARKETPLACES</span>
+        <h1>Where do you sell?</h1>
+        <p>Choose a target channel now. Seller sign-in can be connected later.</p>
       </div>
       {(["Flipkart", "Amazon"] as Marketplace[]).map((m) => (
         <button
-          className={
-            "choice-card " + (connections.includes(m) ? "selected" : "")
-          }
+          type="button"
+          className={"choice-card " + (selected.includes(m) ? "selected" : "")}
           key={m}
-          disabled
-          title="Seller OAuth integration is not configured yet"
+          onClick={() => setSelected((current) => current.includes(m) ? current.filter((item) => item !== m) : [...current, m])}
+          aria-pressed={selected.includes(m)}
         >
-          <span className={"market-icon " + m.toLowerCase()}>
-            {m === "Amazon" ? "a" : "F"}
-          </span>
+          <span className={"market-icon " + m.toLowerCase()}>{m === "Amazon" ? "a" : "F"}</span>
           <span>
-            <strong>
-              {connections.includes(m) ? m + " · Connected" : "Connect " + m}
-            </strong>
-            <small>
-              {m === "Amazon"
-                ? "Prepare your Amazon catalog"
-                : "Prepare your Flipkart catalog"}
-            </small>
+            <strong>{selected.includes(m) ? m + " · Selected" : "Prepare for " + m}</strong>
+            <small>{m === "Amazon" ? "Amazon India listing requirements" : "Flipkart listing requirements"}</small>
           </span>
-          {connections.includes(m) ? (
-            <Check size={16} />
-          ) : (
-            <ChevronRight size={16} />
-          )}
+          {selected.includes(m) ? <Check size={16} /> : <ChevronRight size={16} />}
         </button>
       ))}
-      <Link
-        href="/dashboard/skus"
-        className={"btn full " + (connections.length ? "primary" : "subtle")}
-        style={{ marginTop: 17 }}
-      >
-        {connections.length
-          ? "Open my workspace"
-          : "Skip for now, I’ll connect later"}
-      </Link>
-      <p
-        className="auth-foot"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 6,
-        }}
-      >
-        <LockKeyhole size={12} />
-        Seller connections are not configured yet.
-      </p>
+      <button type="button" className="btn primary full" style={{ marginTop: 17 }} onClick={() => router.push(`/onboarding/source?marketplaces=${encodeURIComponent(selected.join(","))}`)}>
+        {selected.length ? "Continue" : "Skip for now"} <ArrowRight size={15} />
+      </button>
+      <p className="auth-foot"><Store size={12} style={{ verticalAlign: "-2px" }} /> You can connect seller accounts from Settings.</p>
     </section>
   );
 }

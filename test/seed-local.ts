@@ -109,15 +109,42 @@ async function main() {
           painPoints: seed.brand.painPoints,
         },
       });
+      // Replace only the twelve known synthetic fixtures from the earlier UI demo.
+      // Archive instead of deleting: user edits/revisions remain recoverable and
+      // independently created products in this workspace are untouched.
+      await tx.product.updateMany({
+        where: {
+          workspaceId,
+          id: { in: Array.from({ length: 12 }, (_, index) => id("product:" + (index + 1))) },
+          deletedAt: null,
+        },
+        data: { deletedAt: new Date() },
+      });
       for (const p of seed.products) {
         const productId = id("product:" + p.id);
         if (await tx.product.findUnique({ where: { id: productId } })) continue;
+        const template = p.templateSha256
+          ? await tx.marketplaceTemplate.findUnique({
+              where: {
+                platform_marketplaceId_productType_language_schemaSha256: {
+                  platform: "AMAZON",
+                  marketplaceId: "A21TJRUUN4KGV",
+                  productType: p.productType!,
+                  language: "en_IN",
+                  schemaSha256: p.templateSha256,
+                },
+              },
+            })
+          : null;
+        if (p.marketplace === "Amazon" && (!template || !template.isActive))
+          throw new Error(`Active Amazon template missing for ${p.productType}. Run templates:import:amazon first.`);
         await tx.product.create({
           data: {
             id: productId,
             workspaceId,
             brandContextId: brandId,
             name: p.name,
+            brandName: p.brand,
             categoryPath: p.category,
             rawInputText: p.rawText,
             canonicalData: {
@@ -126,11 +153,17 @@ async function main() {
               fixture: true,
               fixtureStatus: p.status,
               fixtureScore: p.score,
+              productType: p.productType,
+              workbookExample: p.workbookExample,
             },
             createdAt: new Date(p.updatedAt),
             updatedAt: new Date(p.updatedAt),
           },
         });
+        const categoryConfig = template ? await tx.productMarketplaceConfig.create({ data: {
+          productId, workspaceId, platform: "AMAZON", marketplaceRegion: "IN",
+          templateId: template.id, browseNodeId: p.browseNodeId!,
+        } }) : null;
         for (const v of p.variants) {
           const variantId = id("variant:" + p.id + ":" + v.id),
             listingId = id("listing:" + variantId),
@@ -149,6 +182,7 @@ async function main() {
               hsnCode: p.hsn,
               countryOfOrigin: p.origin,
               weightKg: p.weight,
+              attributes: { position: p.variants.indexOf(v) },
             },
           });
           // Sample Published/Processing/Failed badges stay explicitly in fixture metadata. No fake live publication or jobs.
@@ -158,6 +192,9 @@ async function main() {
               variantId,
               workspaceId,
               platform: p.marketplace === "Amazon" ? "AMAZON" : "FLIPKART",
+              configId: categoryConfig?.id,
+              productType: p.productType,
+              browseNodeId: p.browseNodeId,
               status: "DRAFT",
             },
           });
@@ -182,6 +219,17 @@ async function main() {
               },
             },
           });
+          if (template)
+            await tx.marketplacePayload.create({
+              data: {
+                revisionId,
+                workspaceId,
+                templateId: template.id,
+                templateVersion: template.schemaSha256,
+                categoryCode: template.productType,
+                rawAttributes: v.channelAttributes || {},
+              },
+            });
         }
       }
     },
@@ -194,7 +242,7 @@ async function main() {
     { mode: 0o600 },
   );
   console.log(
-    `Seed ready: 1 account, 1 team, 1 workspace, ${seed.products.length} sample products. Demo login reset to ${seed.profile.username}. Existing product edits preserved. Login details: test/local-login.txt`,
+    `Seed ready: 1 account, 1 team, 1 workspace, ${seed.products.length} template-based sample products. Twelve legacy demo fixtures archived; other product edits preserved. Demo login reset to ${seed.profile.username}. Login details: test/local-login.txt`,
   );
 }
 main().finally(() => prisma.$disconnect());

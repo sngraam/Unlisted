@@ -6,7 +6,9 @@
 Future maintainers: update task status and evidence here; put architectural context and
 session handoffs in Memory.md. Do not mark simulated functionality as production work. -->
 
-Last reconciled with the repository: **2026-09-15**.
+Last reconciled with the repository: **2026-09-18**.
+
+> **XLSM catalog and export slice (2026-09-19):** Four imported Amazon India category definitions drive the product/editor form and a local fictional demo dataset. Exact-key answers live on template-pinned revisions. Approved downloads now fill the original Template tab as XLSM or CSV, with one SKU per row and separate files per category/version in bulk ZIPs. Hosted rollout, full conditional rules, direct API submission and Amazon acceptance remain pending; see `test/amazon-templates/README.md`.
 
 > **Dataset/auth update (2026-09-15):** The local dataset now has a runtime contract and complete frontend-to-Prisma mapping in `test/DATASET.md`. A normalized username migration is applied; the local demo login is `sngram` / `sngram`. All three migrations, the production build, 9 prototype tests, 18 schema tests, dataset validation and authenticated local integration passed. Hosted authentication and production credential policy remain open work.
 
@@ -52,16 +54,16 @@ Status convention: `[x]` verified artifact/task, `[ ]` pending. For partial work
 
 ## 3. Verified starting point
 
-- [x] **BASE-01 — Frontend prototype.** Auth/onboarding screens, dashboard, SKU catalog, intake, variants, editor, local validation, review CSV, settings and help exist. Evidence: `frontend/README.md`, route/component files; prior production build and 9 focused prototype tests passed. This is browser-local demo functionality.
-- [x] **BASE-02 — Canonical relational design.** 21 Prisma models, pgvector field, initial SQL migration, tenant-scoped foreign keys, revision/approval references, monetary and lifecycle constraints. Evidence: `frontend/prisma/schema.prisma`, `frontend/prisma/migrations/20260913000000_initial_catalog/migration.sql`, `frontend/prisma/README.md`.
-- [x] **BASE-03 — Schema tooling and isolated checks.** Prisma 7.10 CLI/client are installed and pinned; format, validate and generate passed. All 17 migration/constraint tests passed against in-memory PGlite with pgvector. No application database was migrated.
+- [x] **BASE-01 — Frontend prototype.** Auth/onboarding screens, dashboard, SKU catalog, intake, variants, editor, local validation, review CSV, settings and help exist. The current local catalog and edits persist through authenticated Next.js API routes to PostgreSQL; generation and review CSV remain samples. Evidence: `frontend/README.md`, route/component files, production build and 9 focused prototype tests.
+- [x] **BASE-02 — Canonical relational design.** Prisma models include pgvector, tenant-scoped foreign keys, revisions/approvals, money and lifecycle constraints, plus versioned channel templates. Evidence: `frontend/prisma/schema.prisma`, four committed migrations and `frontend/prisma/README.md`.
+- [x] **BASE-03 — Schema tooling and isolated checks.** Prisma 7.10 CLI/client are installed and pinned; generate/validate/build passed. All 19 migration/constraint tests passed against in-memory PGlite with pgvector. The four migrations are applied to the local PostgreSQL application database; hosted Supabase still has only the earlier three until deliberately upgraded.
 - [x] **BASE-04 — Project handoff documentation.** `Memory.md`, frontend edit guide, Prisma relationship/field guide and this ordered roadmap exist.
 
 Frontend refinement follow-up (2026-09-13): requested local Inter/Paper Mono fonts, shared UI polish and responsive prototype checks are implemented. Read `frontend/UI-REVIEW.md` for exact evidence and limitations. MVP-32 remains open for the integrated product's complete UX/accessibility review.
 
-**Not implemented:** real auth, invitation delivery/verification, Prisma runtime client, database-backed CRUD, persistent uploads, worker orchestration, actual LLM calls, official marketplace rules/files, OAuth connections, direct publishing, production deployment or browser end-to-end QA. Backend feature files are mostly empty; `backend/main.py` returns hardcoded sample endpoints. Compose currently starts only frontend and backend.
+**Still pending:** production-grade auth/recovery/invitations, persistent media storage, worker orchestration, actual LLM calls, live conditional marketplace rules and seller validation, Flipkart export and Amazon acceptance verification, OAuth connections, direct publishing, a fully verified hosted deployment and complete browser end-to-end coverage. The Python backend feature modules remain mostly scaffolded; current CRUD and Amazon template export run through authenticated Next.js/Prisma routes.
 
-The generated Prisma client is ignored build output, not a deployed database. The current review CSV is not an official marketplace upload file. SQL foreign keys do not enforce user permissions, successful audits, latest-revision policies or all job transitions; service checks are required.
+The generated Prisma client is ignored build output, not a deployed database. Amazon downloads now use original template files; successful file generation is not proof of marketplace acceptance. SQL foreign keys do not enforce user permissions, successful audits, latest-revision policies or all job transitions; service checks are required.
 
 ## 4. Architecture baseline to ratify in MVP-01
 
@@ -177,8 +179,9 @@ flowchart LR
 ### Milestone C — Durable catalog, media and imports
 
 - [ ] **MVP-10 — Define canonical merchant and channel contracts.** Depends: MVP-04, MVP-01.
+  - **Implemented foundation (2026-09-18):** `MarketplaceTemplate` versions and the macro-free Amazon XLSM extractor cover KURTA, PANTS, SHIRT and SHORTS. An authenticated metadata API and product/editor form now select category and browse node, collect per-variant exact-header answers, and persist template-pinned payloads. The candidate-row mapper resolves explicit shared facts. Four fictional product families/eight variants exercise this path locally. Flipkart contracts, conditional logic and complete merchant facts remain pending. See `test/amazon-templates/README.md`.
   - Define product/variant/channel JSON schemas including identity, source notes, category, options, prices, stock, HSN, country, dimensions, weight, tax, manufacturer/packer/importer and media references. Keep unknown facts null/missing with provenance and confidence where extracted.
-  - Define typed category attributes and versioned channel mapping, including Flipkart pricing/fulfillment/handling fields where required by its verified template. Do not make apparel-only fields universal required columns or conflate ASIN with FSN.
+  - Define typed category attributes and versioned channel mapping, including Flipkart pricing/fulfillment/handling fields where required by its verified template. Wire the imported Amazon field catalog into a dynamic product-type/browse-node selector and exact-header answers stored on a listing revision/payload; pin `templateId` on save. Do not make apparel-only fields universal required columns or conflate ASIN with FSN.
   - **Done when:** realistic single-variant and multi-variant fixtures round-trip through TS/Python contracts without losing merchant facts or precision; missing required publish fields produce actionable errors.
 
 - [ ] **MVP-11 — Implement catalog CRUD and listing creation.** Depends: MVP-07, MVP-08, MVP-10.
@@ -251,8 +254,11 @@ flowchart LR
   - **Done when:** stale/failed audits, revoked approval, role removal and edit/approve races cannot authorize publishing; changing product facts after review is handled by a tested policy.
 
 - [ ] **MVP-24 — Implement official channel export adapters.** Depends: MVP-01, MVP-10, MVP-12, MVP-20, MVP-23.
+  - **Partial implementation (2026-09-19):** Amazon XLSM/CSV template filling, immutable source archive, approved revision checks and category-separated bulk ZIPs are implemented and locally verified. Flipkart, seller acceptance checks and durable export-job artifacts remain open.
+  - **Implemented foundation (2026-09-18):** four India Amazon XLSM field catalogs, exact header ordering/choices, immutable version storage, local import, searchable dynamic fields, exact-key saved answers and candidate-row gap reporting. Local review approval blocks missing unconditional category answers. No accepted Amazon upload or official flat-file writer exists yet.
   - Obtain the official supported category templates and representative sanitized seller files. Map approved revision snapshots to required headers, enums, variation relationships, units, media references and channel-specific attributes; persist template/version provenance.
-  - Produce the actual required format. If a platform requires XLSX/TSV or another format, label it accurately and update the adapter/UI instead of forcing CSV. Keep the existing review CSV as a separately named artifact.
+  - Build a server-side editor/API that reads the active template, groups repeated fields, evaluates conditional dependencies where verifiable, stores seller answers under exact keys, and refreshes mappings when a new template version arrives without rewriting approved revisions. Flag unresolved conditional requirements for human review.
+  - Produce the actual required format and label it accurately. Amazon now offers its original XLSM workbook or Template-tab CSV; the obsolete generic review CSV download was removed.
   - **Done when:** golden-file and round-trip tests pass for both scoped marketplaces, all required data comes from approved snapshots, outputs survive spreadsheet handling without formula injection, and an authorized platform validation/upload trial confirms acceptance or documents specific returned issues.
 
 - [ ] **MVP-25 — Finish export workflow and downloadable history.** Depends: MVP-16, MVP-23, MVP-24.

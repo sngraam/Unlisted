@@ -16,25 +16,41 @@ export interface BrandContext {
   glossary: string;
   bannedTerms: string;
   painPoints: string;
+  revenueRange: string;
+  competitors: string;
+  targetAgeMin: string;
+  targetAgeMax: string;
+  targetCountries: string;
 }
-interface Profile {
+export interface Profile {
   name: string;
   email: string;
   type: string;
   workspace: string;
   team: string;
+  role?: string;
+  isAdmin?: boolean;
 }
 interface WorkspaceState {
   products: Product[];
   brand: BrandContext;
   profile: Profile;
   connections: Marketplace[];
+  onboarding: {
+    required: boolean;
+    completed: boolean;
+    step: number;
+  };
 }
 const empty: WorkspaceState = {
   products: [],
-  brand: { name: "", tone: "", glossary: "", bannedTerms: "", painPoints: "" },
-  profile: { name: "", email: "", type: "", workspace: "", team: "" },
+  brand: {
+    name: "", tone: "", glossary: "", bannedTerms: "", painPoints: "",
+    revenueRange: "", competitors: "", targetAgeMin: "", targetAgeMax: "", targetCountries: "",
+  },
+  profile: { name: "", email: "", type: "", workspace: "", team: "", role: "", isAdmin: false },
   connections: [],
+  onboarding: { required: false, completed: false, step: 1 },
 };
 interface Store extends WorkspaceState {
   ready: boolean;
@@ -42,7 +58,7 @@ interface Store extends WorkspaceState {
   saving: boolean;
   notice: string;
   notify: (message: string) => void;
-  reload: () => Promise<void>;
+  reload: () => Promise<boolean>;
   logout: () => Promise<void>;
   updateProduct: (
     id: string,
@@ -52,8 +68,16 @@ interface Store extends WorkspaceState {
   addProducts: (products: Product[]) => Promise<string[] | undefined>;
   setBrand: (brand: BrandContext) => Promise<boolean>;
   setProfile: (profile: Profile) => Promise<boolean>;
+  setOnboarding: (input: { source: string; other?: string; marketplaces: Marketplace[] }) => Promise<boolean>;
 }
 const Context = createContext<Store | null>(null);
+function mergeProducts(current: WorkspaceState, incoming: WorkspaceState): WorkspaceState {
+  const changed = new Map(incoming.products.map((product) => [product.id, product]));
+  return { ...incoming, products: [
+    ...incoming.products.filter((product) => !current.products.some((old) => old.id === product.id)),
+    ...current.products.map((product) => changed.get(product.id) || product),
+  ] };
+}
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<WorkspaceState>(empty);
   const [ready, setReady] = useState(false),
@@ -86,8 +110,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     try {
       setState(await request("/api/workspace"));
       setReady(true);
+      return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not load workspace.");
+      return false;
     }
   }
   useEffect(() => {
@@ -141,7 +167,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           "PUT",
           { ...original, ...patch },
         );
-        setState(result);
+        setState((current) => mergeProducts(current, result));
         return result.products.find((p) => p.id === id);
       }),
     approveProduct: async (product) =>
@@ -151,13 +177,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           "POST",
           { updatedAt: product.updatedAt },
         );
-        setState(result);
+        setState((current) => mergeProducts(current, result));
         return result.products.find((p) => p.id === product.id);
       }),
     addProducts: async (products) =>
       mutate(async () => {
         const result = await request("/api/products", "POST", products);
-        setState(result.state);
+        setState((current) => mergeProducts(current, result.state));
         return result.ids as string[];
       }),
     setBrand: async (brand) =>
@@ -168,6 +194,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setProfile: async (profile) =>
       !!(await mutate(async () => {
         setState(await request("/api/workspace", "PATCH", { profile }));
+        return true;
+      })),
+    setOnboarding: async (input) =>
+      !!(await mutate(async () => {
+        setState(await request("/api/workspace", "PATCH", { onboarding: input }));
         return true;
       })),
   };

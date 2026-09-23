@@ -27,14 +27,14 @@ To verify a production build while the development server keeps running, use `NE
 | Route                         | Purpose                                                          |
 | ----------------------------- | ---------------------------------------------------------------- |
 | `/login`, `/signup`           | PostgreSQL-backed sign-in; invitation acceptance is pending      |
-| `/onboarding/profile`         | Individual, Agency, or Freelance profile                         |
-| `/onboarding/details`         | Person, team, and workspace details                              |
-| `/onboarding/brand`           | Brand voice, glossary, banned terms, customer needs              |
-| `/onboarding/connect`         | Simulated marketplace connections                                |
+| `/onboarding/profile`         | Display name, email, and account type                            |
+| `/onboarding/brand`           | Brand voice, glossary, audience, revenue, and competitors        |
+| `/onboarding/connect`         | Amazon and Flipkart target selection                             |
+| `/onboarding/source`          | Acquisition source and onboarding completion                     |
 | `/dashboard`                  | Counts and review queue derived from the local catalog           |
 | `/dashboard/skus`             | Search, filter, select, paginate, import, and export products    |
-| `/dashboard/skus/new`         | Create a parent product with merchant variants                   |
-| `/dashboard/skus/[id]`        | Listing editor, variants/pricing, product details, review checks |
+| `/dashboard/skus/new`         | Three-step product intake: details, source data, marketplace facts |
+| `/dashboard/skus/[id]`        | Copy, pricing, facts, dynamic Amazon fields and local review     |
 | `/dashboard/skus/[id]/review` | Direct entry into the final review workspace                     |
 | `/dashboard/settings`         | Workspace details and demo connections                           |
 | `/dashboard/settings/brand`   | Shared brand-context settings                                    |
@@ -49,22 +49,24 @@ To verify a production build while the development server keeps running, use `NE
 - `components/sku/CsvUploader.tsx`: import selection, validation, and preview.
 - `components/listing/ListingEditor.tsx`: editable listing copy, draft save, sample generation, and review.
 - `components/listing/VariantEditor.tsx`: SKU options, prices, inventory.
-- `components/listing/PublishSelector.tsx`: human approval and review CSV export.
+- `components/listing/AmazonCategoryFields.tsx`: category/browse-node selection and searchable per-variant XLSM attributes.
+- `components/listing/PublishSelector.tsx`: human approval and original Amazon XLSM/CSV template download.
 - `components/brand/BrandContextForm.tsx`: shared brand input contract.
 - `components/ui/`: shared logo, marketplace badges, and keyboard-accessible modal.
 - `lib/stores/workspaceStore.tsx`: authenticated API cache and persisted workspace mutations.
-- `../test/seed-data.json`: the twelve validated sample catalog records.
+- `../test/seed-data.json`: four fictional XLSM-backed Amazon product families and eight validated variants; see `../test/DATASET.md`.
 - `lib/csv.ts`: CSV parser, formula-safe cells, variant-row export.
 - `lib/validation.ts`: prototype review rules, deliberately separate from UI.
+- `lib/marketplace-template.ts`: common-fact mapping and local XLSM requirement checks; `app/api/marketplace-templates/route.ts` serves the imported definitions.
 - `types/sku.ts`: product, variant, marketplace, and status contracts.
 
 Unused pre-existing scaffold files remain explicitly marked as reserved for future backend integration. `frontend/lib/` is now trackable; the root Python ignore pattern previously hid it.
 
 ## What works
 
-Search SKU/name/brand; status, channel, and date filters; multi-selection; pagination; CSV import preview with required-column, duplicate-SKU, price, stock, size, and row-limit checks; review CSV export; new products and variants; optional local image uploads; title/bullet/description/keyword editing; sample generation; local rule checks; approval gating; profile/brand edits; connection-state previews; mobile navigation; error/empty states.
+Search SKU/name/brand; status, channel, and date filters; multi-selection; pagination; CSV import preview with required-column, duplicate-SKU, price, stock, size, and row-limit checks; approved Amazon XLSM/CSV template exports with separate category files in bulk ZIPs; new products and variants; imported Amazon product-type/browse-node choices and per-variant exact-key answers; optional local image uploads; title/bullet/description/keyword editing; sample generation; local rule checks; approval gating; profile/brand edits; connection-state previews; mobile navigation; error/empty states.
 
-The local MVP stores workspace and catalog data in PostgreSQL. Browser state is only a cache of authenticated API responses; it does not store passwords or session tokens. Seeded status labels are presentation fixtures and do not claim live marketplace publication.
+The local MVP stores workspace and catalog data in PostgreSQL. Browser state is only a cache of authenticated API responses; it does not store passwords or session tokens. Current XLSM-backed samples are drafts and do not claim live marketplace publication or Amazon approval.
 
 ## Interface and typography
 
@@ -78,9 +80,9 @@ Browser verification and remaining limits are recorded in [`UI-REVIEW.md`](UI-RE
 
 ## Demo integration boundaries
 
-Password authentication, server sessions and PostgreSQL catalog persistence work locally. Invitation verification, OAuth, AI inference, background processing and marketplace publishing remain pending. Seeded Processing/Published statuses are sample records. Connections are labeled as simulated. Direct API publishing is disabled. Sample generation is deterministic text, and its claims still need human verification.
+Password authentication, server sessions and PostgreSQL catalog persistence work locally. OAuth, AI inference, background processing and marketplace publishing remain pending. Product intake now persists a queue record and locks the product while the future agent worker is expected to process it. Connections are labeled as simulated. Direct API publishing is disabled. Sample generation is deterministic text, and its claims still need human verification.
 
-Export produces a **review CSV**, not an official Amazon/Flipkart category upload file. Prototype review checks are not marketplace certification. Uploaded images are small data URLs in browser storage; production uploads must use object storage. Approval is invalidated when content is edited and saved. Refreshing with unsaved editor changes prompts before discarding them.
+Amazon export fills the pinned original workbook's **Template** tab from row 7 and downloads XLSM or the same tab as CSV. Supporting tabs, headers, dropdowns and original column order are retained. Bulk export keeps distinct templates in separate ZIP entries. Provision private original workbooks before deployment; see `private/amazon-templates/README.md`. Local review checks are not marketplace certification. Production images need object storage. Approval is invalidated when content is edited and saved. Refreshing with unsaved editor changes prompts before discarding them.
 
 The production schema and backend should follow the approved workflow, rather than copying browser storage one-to-one. See `SCHEMA-NOTES.md` for the proposed Prisma boundaries.
 

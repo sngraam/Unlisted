@@ -21,8 +21,8 @@ export default function ValidationErrors({ checks }: { checks: AuditCheck[] }) {
         </div>
       ))}
       <p className="field-hint" style={{ marginTop: 18 }}>
-        Prototype checks. Marketplace category rules will be added with the
-        backend.
+        Copy checks are local. Imported Amazon category requirements appear
+        separately; live marketplace validation is still pending.
       </p>
     </section>
   );

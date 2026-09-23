@@ -1,5 +1,7 @@
 # Frontend findings for the future Prisma schema
 
+Current category/template implementation and XLSM evidence: [CATALOG-DESIGN.md](CATALOG-DESIGN.md). The notes below are historical context.
+
 These are the earlier frontend design notes. The implemented schema and migration now live in [`prisma/schema.prisma`](prisma/schema.prisma) and [`prisma/README.md`](prisma/README.md); use that guide as the current source of truth. `test/data.prisma` is preserved. The user's latest preference is **Prisma**; the earlier SQLAlchemy scaffold is not a reason to override that preference.
 
 ## Suggested normalized model boundaries

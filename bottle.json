@@ -1,0 +1,62 @@
+{
+  "marketplace": "amazon.in",
+  "marketplaceId": "A21TJRUUN4KGV",
+  "query": "water bottle",
+  "status": "awaiting_live_product_type_definition",
+  "sellerCentralTemplateSelection": {
+    "source": "user-observed Seller Central download request; template file not yet received",
+    "productType": "BOTTLE",
+    "browseNodeId": "13956517031",
+    "browsePath": ["Home & Kitchen", "Kitchen & Dining", "Kitchen Storage & Containers", "Water Bottles"],
+    "marketplace": "Amazon India",
+    "language": "en_IN",
+    "templateDownloadedForAnalysis": false
+  },
+  "checkedAt": "2026-09-17",
+  "authenticationTest": {
+    "lwaAccessTokenExchange": "success",
+    "sandboxSearch": {
+      "httpStatus": 200,
+      "returnedProductTypes": [
+        {
+          "name": "LUGGAGE",
+          "displayName": "Luggage",
+          "marketplaceIds": ["ATVPDKIKX0DER"]
+        }
+      ],
+      "interpretation": "Static US marketplace mock; not an India bottle product type."
+    },
+    "productionIndiaSearch": {
+      "httpStatus": 403,
+      "errorCode": "Unauthorized",
+      "interpretation": "The supplied sandbox authorization cannot access the production India definition endpoint."
+    }
+  },
+  "verifiedProductType": null,
+  "officialAttributes": [],
+  "officialSchema": null,
+  "draftMerchantFacts": [
+    "brand",
+    "seller_sku",
+    "product_name",
+    "material",
+    "capacity",
+    "color",
+    "item_dimensions",
+    "package_dimensions",
+    "item_weight",
+    "country_of_origin",
+    "main_image",
+    "additional_images",
+    "price",
+    "stock"
+  ],
+  "draftMerchantFactsNote": "Planning checklist only. These are not verified Amazon attribute keys, required fields, allowed values, or a listing payload. Exact requirements depend on the live India product type definition and may include conditional rules.",
+  "sandboxNote": "Amazon's Product Type Definitions hosted sandbox is static. Its official mock model returns LUGGAGE, not a bottle-specific India schema.",
+  "nextStep": "Use test/fetch-amazon-bottle.py with a production-authorized Product Listing app and LWA credentials. Review search results before selecting the product type.",
+  "sources": [
+    "https://developer-docs.amazon.com/sp-api/docs/sp-api-sandbox",
+    "https://github.com/amzn/selling-partner-api-models/blob/main/models/product-type-definitions-api-model/definitionsProductTypes_2020-09-01.json",
+    "https://developer-docs.amazon.com/sp-api/lang-en_EN/docs/retrieve-a-product-type-definition"
+  ]
+}

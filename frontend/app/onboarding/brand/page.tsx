@@ -1,5 +1,5 @@
 "use client";
-// Step 3: establish brand voice before generating any listing content.
+// Step 2: capture the brand context used by future listing agents.
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Logo from "@/components/ui/Logo";
@@ -10,18 +10,19 @@ export default function BrandPage() {
   return (
     <section className="auth-card wide">
       <Logo compact />
-      <StepProgress step={3} />
+      <StepProgress step={2} />
       <div className="auth-heading">
+        <span className="eyebrow">STEP 2 OF 4 · BRAND CONTEXT</span>
         <h1>Give your brand a voice</h1>
-        <p>Keep every product listing recognizably yours.</p>
+        <p>These facts guide every title, bullet, and description later.</p>
       </div>
       <BrandContextForm
-        buttonLabel="Continue to marketplaces"
+        buttonLabel="Continue to marketplace setup"
         onSaved={() => router.push("/onboarding/connect")}
       />
       <div className="auth-foot">
-        <Link className="text-link" href="/onboarding/details">
-          Back to workspace details
+        <Link className="text-link" href="/onboarding/profile">
+          Back to profile
         </Link>
       </div>
     </section>

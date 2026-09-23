@@ -22,7 +22,7 @@ const updatedTables = new Set([
   "marketplace_listings",
 ]);
 async function insert(table, values) {
-  const record = { id: randomUUID(), ...values };
+  const record = { id: randomUUID(), ...(table === "products" ? { brand_name: "Test brand" } : {}), ...values };
   if (updatedTables.has(table)) record.updated_at = new Date();
   const columns = Object.keys(record);
   const result = await db.query(
@@ -133,6 +133,11 @@ before(async () => {
     "../prisma/migrations/20260913000000_initial_catalog/migration.sql",
     "../prisma/migrations/20260913010000_sessions/migration.sql",
     "../prisma/migrations/20260915000000_usernames/migration.sql",
+    "../prisma/migrations/20260918000000_marketplace_templates/migration.sql",
+    "../prisma/migrations/20260919000000_category_contract/migration.sql",
+    "../prisma/migrations/20260919010000_variant_ownership/migration.sql",
+    "../prisma/migrations/20260919020000_template_source_metadata/migration.sql",
+    "../prisma/migrations/20260923100000_onboarding_product_intake/migration.sql",
   ];
   for (const path of migrations)
     await db.exec(await readFile(new URL(path, import.meta.url), "utf8"));
@@ -143,11 +148,11 @@ after(async () => {
   await db?.close();
 });
 
-test("migrations create all 22 application tables and pgvector", async () => {
+test("migrations create all 26 application tables and pgvector", async () => {
   const tables = await db.query(
     "SELECT count(*)::int AS count FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'",
   );
-  assert.equal(tables.rows[0].count, 22);
+  assert.equal(tables.rows[0].count, 26);
   const extension = await db.query(
     "SELECT extname FROM pg_extension WHERE extname='vector'",
   );
@@ -422,4 +427,139 @@ test("pgvector stores the configured 1536-dimensional brand embedding", async ()
     [first.brand.id],
   );
   assert.equal(result.rows[0].dimensions, 1536);
+});
+test("template versions keep one active category while old payloads retain provenance", async () => {
+  const template = {
+    platform: "AMAZON",
+    marketplace_id: "A21TJRUUN4KGV",
+    product_type: "KURTA",
+    language: "en_IN",
+    source_filename: "KURTA.xlsm",
+    source_sha256: "a".repeat(64),
+    schema_sha256: "b".repeat(64),
+    parser_version: 1,
+    field_count: 1,
+    fields: JSON.stringify([{ key: "product_type#1.value" }]),
+    browse_nodes: JSON.stringify([{ id: "123", path: "Clothing > Kurtas" }]),
+  };
+  const oldVersion = await insert("marketplace_templates", template);
+  await rejectsCode(
+    insert("marketplace_templates", { ...template, schema_sha256: "c".repeat(64) }),
+    "23505",
+  );
+  const rev = await revision();
+  const config = await insert("product_marketplace_configs", {
+    product_id: first.product.id, workspace_id: first.workspace.id, platform: "AMAZON",
+    template_id: oldVersion.id, browse_node_id: "123",
+  });
+  await db.query("UPDATE marketplace_listings SET config_id=$1, product_type='KURTA', browse_node_id='123' WHERE id=$2", [config.id, first.listing.id]);
+  await insert("marketplace_payloads", {
+    revision_id: rev.id,
+    workspace_id: first.workspace.id,
+    template_id: oldVersion.id,
+    category_code: "KURTA",
+    template_version: oldVersion.schema_sha256,
+  });
+  await db.query("UPDATE marketplace_templates SET is_active=false WHERE id=$1", [oldVersion.id]);
+  const newVersion = await insert("marketplace_templates", {
+    ...template,
+    schema_sha256: "c".repeat(64),
+  });
+  assert.equal(newVersion.is_active, true);
+  const payload = await db.query("SELECT template_id FROM marketplace_payloads WHERE revision_id=$1", [rev.id]);
+  assert.equal(payload.rows[0].template_id, oldVersion.id);
+  await assert.rejects(
+    db.query("DELETE FROM marketplace_templates WHERE id=$1", [oldVersion.id]),
+    (error) => ["23001", "23503"].includes(error.code),
+  );
+});
+
+test("category bindings reject changes, invalid nodes and another product's configuration", async () => {
+  const c = (await db.query("SELECT * FROM product_marketplace_configs WHERE product_id=$1", [first.product.id])).rows[0];
+  await rejectsCode(db.query("UPDATE product_marketplace_configs SET browse_node_id='999' WHERE id=$1", [c.id]), "23514");
+  await rejectsCode(db.query("UPDATE marketplace_listings SET config_id=NULL WHERE id=$1", [first.listing.id]), "23514");
+  await rejectsCode(db.query("UPDATE marketplace_listings SET product_type='PANTS' WHERE id=$1", [first.listing.id]), "23514");
+  const other = await insert("products", { name: "Other", workspace_id: first.workspace.id, brand_context_id: first.brand.id });
+  const variant = await insert("product_variants", { product_id: other.id, workspace_id: first.workspace.id, seller_sku: randomUUID() });
+  await rejectsCode(db.query("UPDATE product_variants SET product_id=$1 WHERE id=$2", [other.id, first.variant.id]), "23514");
+  await rejectsCode(insert("marketplace_listings", { variant_id: variant.id, workspace_id: first.workspace.id, platform: "AMAZON", config_id: c.id, product_type: "KURTA", browse_node_id: "123" }), "23514");
+  await rejectsCode(insert("product_marketplace_configs", { product_id: second.product.id, workspace_id: second.workspace.id, platform: "AMAZON", template_id: c.template_id, browse_node_id: "missing" }), "23514");
+  await rejectsCode(insert("product_marketplace_configs", { product_id: second.product.id, workspace_id: first.workspace.id, platform: "AMAZON", template_id: c.template_id, browse_node_id: "123" }), "23503");
+});
+
+test("JSONB answers use exact template keys and strings, and reviewed records stay immutable", async () => {
+  const scope = await fixture("attribute-test");
+  const t = await insert("marketplace_templates", {
+    platform: "AMAZON", marketplace_id: "A21TJRUUN4KGV", product_type: "TEST", language: "en_IN",
+    source_filename: "TEST.xlsm", source_sha256: "d".repeat(64), schema_sha256: "e".repeat(64), parser_version: 2,
+    field_count: 3,
+    fields: JSON.stringify([
+      { key: "fabric#1.value", attribute: "fabric", allowedValues: ["Cotton", "Linen"] },
+      { key: "fabric#2.value", attribute: "fabric" },
+      { key: "brand#1.value", attribute: "brand" },
+    ]),
+    browse_nodes: JSON.stringify([{ id: "456", path: "Test" }]),
+  });
+  const c = await insert("product_marketplace_configs", { product_id: scope.product.id, workspace_id: scope.workspace.id, platform: "AMAZON", template_id: t.id, browse_node_id: "456" });
+  await db.query("UPDATE marketplace_listings SET config_id=$1, product_type='TEST', browse_node_id='456' WHERE id=$2", [c.id, scope.listing.id]);
+  for (const attributes of [{ unknown: "x" }, { "fabric#1.value": 5 }, { "fabric#1.value": { value: "Cotton" } }, { "fabric#1.value": "Silk" }, { "brand#1.value": "Override" }]) {
+    const r = await revision(scope);
+    await rejectsCode(insert("marketplace_payloads", { revision_id: r.id, workspace_id: scope.workspace.id, template_id: t.id, template_version: t.schema_sha256, category_code: "TEST", raw_attributes: JSON.stringify(attributes) }), "23514");
+  }
+  const r = await revision(scope);
+  await rejectsCode(insert("marketplace_payloads", { revision_id: r.id, workspace_id: scope.workspace.id }), "23514");
+  const payload = await insert("marketplace_payloads", { revision_id: r.id, workspace_id: scope.workspace.id, template_id: t.id, template_version: t.schema_sha256, category_code: "TEST", raw_attributes: JSON.stringify({ "fabric#1.value": "Cotton", "fabric#2.value": "Other repeat" }) });
+  await rejectsCode(db.query("UPDATE marketplace_payloads SET raw_attributes='{}' WHERE id=$1", [payload.id]), "23514");
+  await rejectsCode(db.query("UPDATE listing_revisions SET title='rewritten' WHERE id=$1", [r.id]), "23514");
+  await rejectsCode(db.query("UPDATE marketplace_templates SET fields='[]' WHERE id=$1", [t.id]), "23514");
+  const next = await revision(scope);
+  await rejectsCode(insert("marketplace_payloads", { revision_id: next.id, workspace_id: scope.workspace.id, template_id: t.id, template_version: "f".repeat(64), category_code: "TEST" }), "23514");
+});
+
+test("typed product brand cannot be blank", async () => {
+  await rejectsCode(db.query("UPDATE products SET brand_name=' ' WHERE id=$1", [first.product.id]), "23514");
+});
+
+test("source metadata is complete, source-bound and immutable; workbook suggestions accept custom values", async () => {
+  const scope = await fixture("source-metadata");
+  const t = await insert("marketplace_templates", {
+    platform: "AMAZON", marketplace_id: "A21TJRUUN4KGV", product_type: "METADATA", language: "en_IN",
+    source_filename: "METADATA.xlsm", source_sha256: "1".repeat(64), schema_sha256: "2".repeat(64), parser_version: 2,
+    field_count: 2,
+    fields: JSON.stringify([
+      { key: "price#1.value", pattern: "price#*.value", attribute: "price", allowedValues: ["Delete Offer"] },
+      { key: "id_type", pattern: "id_type", attribute: "id_type", allowedValues: ["UPC"] },
+    ]), browse_nodes: JSON.stringify([{ id: "456", path: "Metadata" }]),
+  });
+  const metadata = { version: 1, sourceSha256: t.source_sha256, definitions: [
+    { pattern: "price#*.value", row: 4, example: "259.99" },
+    { pattern: "id_type", row: 5, example: "UPC" },
+  ], suggestedChoiceKeys: ["price#1.value"] };
+  for (const invalid of [{ ...metadata, sourceSha256: "0".repeat(64) }, { ...metadata, definitions: metadata.definitions.slice(0, 1) }, { ...metadata, suggestedChoiceKeys: ["unknown"] }])
+    await rejectsCode(db.query("UPDATE marketplace_templates SET source_metadata=$1 WHERE id=$2", [JSON.stringify(invalid), t.id]), "23514");
+  await db.query("UPDATE marketplace_templates SET source_metadata=$1 WHERE id=$2", [JSON.stringify(metadata), t.id]);
+  await rejectsCode(db.query("UPDATE marketplace_templates SET source_metadata=NULL WHERE id=$1", [t.id]), "23514");
+  await rejectsCode(db.query("UPDATE marketplace_templates SET source_metadata=$1 WHERE id=$2", [JSON.stringify({ ...metadata, suggestedChoiceKeys: [] }), t.id]), "23514");
+  const c = await insert("product_marketplace_configs", { product_id: scope.product.id, workspace_id: scope.workspace.id, platform: "AMAZON", template_id: t.id, browse_node_id: "456" });
+  await db.query("UPDATE marketplace_listings SET config_id=$1, product_type='METADATA', browse_node_id='456' WHERE id=$2", [c.id, scope.listing.id]);
+  const r = await revision(scope);
+  await insert("marketplace_payloads", { revision_id: r.id, workspace_id: scope.workspace.id, template_id: t.id, template_version: t.schema_sha256, category_code: "METADATA", raw_attributes: JSON.stringify({ "price#1.value": "259.99", id_type: "UPC" }) });
+  const next = await revision(scope);
+  await rejectsCode(insert("marketplace_payloads", { revision_id: next.id, workspace_id: scope.workspace.id, template_id: t.id, template_version: t.schema_sha256, category_code: "METADATA", raw_attributes: JSON.stringify({ id_type: "INVALID" }) }), "23514");
+});
+
+test("generation requests are idempotent and stale results cannot replace manual edits", async () => {
+  const c = (await db.query("SELECT * FROM product_marketplace_configs WHERE product_id=$1", [first.product.id])).rows[0];
+  const base = await revision();
+  const values = { listing_id: first.listing.id, workspace_id: first.workspace.id, template_id: c.template_id, base_revision_id: base.id, idempotency_key: randomUUID() };
+  const job = await insert("generation_jobs", values);
+  await rejectsCode(insert("generation_jobs", values), "23505");
+  const foreign = await revision(second);
+  await rejectsCode(insert("generation_jobs", { ...values, idempotency_key: randomUUID(), base_revision_id: foreign.id }), "23503");
+  const manual = await revision();
+  await rejectsCode(insert("listing_revisions", { listing_id: first.listing.id, workspace_id: first.workspace.id, number: ++revisionNumber, generation_job_id: job.id }), "23514");
+  const nextJob = await insert("generation_jobs", { ...values, idempotency_key: randomUUID(), base_revision_id: manual.id });
+  const generated = await insert("listing_revisions", { listing_id: first.listing.id, workspace_id: first.workspace.id, number: ++revisionNumber, generation_job_id: nextJob.id, title: "Generated from current input" });
+  assert.equal(generated.generation_job_id, nextJob.id);
+  await rejectsCode(db.query("UPDATE generation_jobs SET input_snapshot='{\"changed\":true}' WHERE id=$1", [nextJob.id]), "23514");
 });

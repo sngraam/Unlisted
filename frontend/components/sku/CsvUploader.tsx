@@ -6,12 +6,14 @@ import Modal from "@/components/ui/Modal";
 import { parseCsv, downloadText } from "@/lib/csv";
 import { useWorkspace } from "@/lib/stores/workspaceStore";
 import { Product } from "@/types/sku";
+import AmazonCategoryFields from "@/components/listing/AmazonCategoryFields";
 export default function CsvUploader({ onClose }: { onClose: () => void }) {
   const { products, addProducts, notify, saving } = useWorkspace();
   const [preview, setPreview] = useState<Product[]>([]);
   const [filename, setFilename] = useState("");
   const [error, setError] = useState("");
   const [reading, setReading] = useState(false);
+  const [category, setCategory] = useState({ templateId: "", productType: "", browseNodeId: "", category: "" });
   async function read(file?: File) {
     setError("");
     setPreview([]);
@@ -25,8 +27,8 @@ export default function CsvUploader({ onClose }: { onClose: () => void }) {
     try {
       const rows = parseCsv(await file.text());
       if (rows.length < 2) throw new Error("Add at least one product row.");
-      if (rows.length > 501)
-        throw new Error("Import up to 500 products at a time.");
+      if (rows.length > 51)
+        throw new Error("Import up to 50 products at a time.");
       const header = rows[0].map((h) => h.trim().toLowerCase());
       for (const name of ["sku", "name", "brand", "marketplace"])
         if (!header.includes(name))
@@ -47,6 +49,8 @@ export default function CsvUploader({ onClose }: { onClose: () => void }) {
           throw new Error("Duplicate SKU: " + sku);
         seen.add(sku.toLowerCase());
         const channel = get("marketplace").toLowerCase();
+        if (channel === "amazon" && (!category.templateId || !category.browseNodeId))
+          throw new Error("Choose the Amazon category for this batch before importing. Use a separate batch for each category.");
         if (!["amazon", "flipkart"].includes(channel))
           throw new Error(
             "Row " + (i + 2) + ": marketplace must be Amazon or Flipkart.",
@@ -70,7 +74,8 @@ export default function CsvUploader({ onClose }: { onClose: () => void }) {
           sku,
           name: get("name"),
           brand: get("brand"),
-          category: get("category") || "Uncategorized",
+          category: channel === "amazon" ? category.category : get("category") || "Uncategorized",
+          ...(channel === "amazon" ? { templateId: category.templateId, productType: category.productType, browseNodeId: category.browseNodeId } : {}),
           marketplace: channel === "amazon" ? "Amazon" : "Flipkart",
           status: "Draft",
           score: 0,
@@ -89,10 +94,13 @@ export default function CsvUploader({ onClose }: { onClose: () => void }) {
               mrp,
               price,
               stock,
+              countryOfOrigin: get("origin"),
+              hsnCode: get("hsn"),
+              weightKg: get("weight_kg") ? number("weight_kg") : null,
             },
           ],
           hsn: "",
-          origin: "India",
+          origin: get("origin"),
           weight: 0,
           approved: false,
         } as Product;
@@ -110,6 +118,15 @@ export default function CsvUploader({ onClose }: { onClose: () => void }) {
         Bring your merchant facts into the workspace. Each row becomes an
         editable product draft.
       </p>
+      <AmazonCategoryFields selectionOnly variants={[]} {...category} onChange={(change) => {
+        setPreview([]);
+        setCategory((current) => ({ ...current,
+          ...(change.templateId !== undefined ? { templateId: change.templateId } : {}),
+          ...(change.productType !== undefined ? { productType: change.productType } : {}),
+          ...(change.browseNodeId !== undefined ? { browseNodeId: change.browseNodeId } : {}),
+          ...(change.category !== undefined ? { category: change.category } : {}),
+        }));
+      }} />
       <label
         className="dropzone"
         onDragOver={(e) => e.preventDefault()}
@@ -120,7 +137,7 @@ export default function CsvUploader({ onClose }: { onClose: () => void }) {
       >
         <UploadCloud size={30} />
         <strong>Choose a CSV or drop it here</strong>
-        <p>Up to 500 products · Maximum 2 MB</p>
+        <p>Up to 50 products per category · Maximum 2 MB</p>
         <input
           type="file"
           accept=".csv,text/csv"

@@ -17,6 +17,9 @@ export const productInput = z
     name: text(500).trim().min(1),
     brand: text(255).trim().min(1),
     category: text(2000),
+    productType: text(120).optional(),
+    browseNodeId: text(120).optional(),
+    templateId: z.uuid().optional(),
     marketplace: z.enum(["Amazon", "Flipkart"]),
     status: z.enum(["Draft", "Ready", "Published", "Processing", "Failed"]),
     score: z.number(),
@@ -35,6 +38,16 @@ export const productInput = z
           /^\/[^/]/.test(v),
         "Use a local PNG, JPEG or WebP image.",
       ),
+    images: z.array(text(1500000)).max(8).optional(),
+    intake: z.object({
+      productIdType: text(80),
+      materials: text(30000),
+      dimensions: text(30000),
+      features: z.array(z.object({ label: text(120), value: text(1000) })).max(4),
+      sourceFiles: z.array(z.object({ name: text(255), mimeType: text(120), sizeBytes: z.number().int().nonnegative().max(25_000_000) })).max(20),
+      status: z.enum(["QUEUED", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED"]).optional(),
+      statusMessage: text(1000).optional(),
+    }).optional(),
     variants: z
       .array(
         z
@@ -46,6 +59,13 @@ export const productInput = z
             mrp: money,
             price: money,
             stock: z.number().int().min(0).max(2147483647),
+            countryOfOrigin: text(120).optional(),
+            hsnCode: text(16).optional(),
+            weightKg: z.number().finite().min(0).max(9999999).nullable().optional(),
+            channelAttributes: z.record(text(500), text(30000)).refine(
+              (value) => Object.keys(value).length <= 2000,
+              "Too many marketplace attributes.",
+            ).optional(),
           })
           .refine((v) => v.price <= v.mrp, "Selling price cannot exceed MRP."),
       )
@@ -68,11 +88,21 @@ export const brandInput = z.object({
   glossary: text(10000),
   bannedTerms: text(10000),
   painPoints: text(30000),
+  revenueRange: text(80).optional().default(""),
+  competitors: text(10000).optional().default(""),
+  targetAgeMin: text(3).optional().default(""),
+  targetAgeMax: text(3).optional().default(""),
+  targetCountries: text(10000).optional().default(""),
 });
 export const profileInput = z.object({
   name: text(255).trim().min(1),
   email: z.email().max(320),
   type: z.enum(["Agency", "Individual", "Freelance"]),
-  workspace: text(255).trim().min(1),
-  team: text(255).trim().min(1),
+  workspace: text(255).trim().optional().default(""),
+  team: text(255).trim().optional().default(""),
+});
+export const onboardingInput = z.object({
+  source: z.enum(["google", "cold-call", "facebook", "cold-email", "instagram", "other"]),
+  other: text(255).optional().default(""),
+  marketplaces: z.array(z.enum(["Amazon", "Flipkart"])).max(2).default([]),
 });

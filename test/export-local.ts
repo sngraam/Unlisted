@@ -16,6 +16,12 @@ const prisma = new PrismaClient({
 });
 async function main() {
   const workspaceId = "33b5a3f5-0213-4ff5-a3b6-50eb5574fb32";
+  // Snapshot the active sample catalog only. Archived legacy fixtures remain in
+  // PostgreSQL for history, but should not appear as current demo products.
+  const activeProduct = { deletedAt: null };
+  const activeVariant = { deletedAt: null, product: activeProduct };
+  const activeListing = { variant: activeVariant };
+  const activeRevision = { listing: activeListing };
   const snapshot = await prisma.$transaction(
     async (tx) => ({
       exportedAt: new Date().toISOString(),
@@ -41,16 +47,22 @@ async function main() {
         include: { memberships: true, folders: true },
       }),
       brand: await tx.brandContext.findUnique({ where: { workspaceId } }),
-      products: await tx.product.findMany({ where: { workspaceId } }),
-      variants: await tx.productVariant.findMany({ where: { workspaceId } }),
+      products: await tx.product.findMany({ where: { workspaceId, ...activeProduct } }),
+      variants: await tx.productVariant.findMany({ where: { workspaceId, ...activeVariant } }),
+      categoryConfigs: await tx.productMarketplaceConfig.findMany({ where: { workspaceId, product: activeProduct } }),
       listings: await tx.marketplaceListing.findMany({
-        where: { workspaceId },
+        where: { workspaceId, ...activeListing },
       }),
-      revisions: await tx.listingRevision.findMany({ where: { workspaceId } }),
+      revisions: await tx.listingRevision.findMany({ where: { workspaceId, ...activeRevision } }),
+      marketplacePayloads: await tx.marketplacePayload.findMany({
+        where: { workspaceId, revision: activeRevision },
+      }),
       validationRuns: await tx.validationRun.findMany({
-        where: { workspaceId },
+        where: { workspaceId, revision: activeRevision },
       }),
-      approvals: await tx.listingApproval.findMany({ where: { workspaceId } }),
+      approvals: await tx.listingApproval.findMany({
+        where: { workspaceId, revision: activeRevision },
+      }),
     }),
     { isolationLevel: "RepeatableRead" },
   );

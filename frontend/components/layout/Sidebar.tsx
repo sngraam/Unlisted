@@ -2,7 +2,7 @@
 // Main navigation and workspace context. Add future dashboard destinations in the items array.
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   LayoutDashboard,
   Layers3,
@@ -12,17 +12,25 @@ import {
   BookOpen,
   X,
   LogOut,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import Logo from "@/components/ui/Logo";
+import SettingsModal from "@/components/settings/SettingsModal";
 import { useWorkspace } from "@/lib/stores/workspaceStore";
 export default function Sidebar({
   open,
   onClose,
+  collapsed,
+  onToggleCollapse,
 }: {
   open: boolean;
   onClose: () => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
 }) {
   const path = usePathname();
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const drawer = useRef<HTMLElement>(null);
   const close = useRef(onClose);
   close.current = onClose;
@@ -74,7 +82,6 @@ export default function Sidebar({
   const items = [
     { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/skus", label: "SKU catalog", icon: Layers3 },
-    { href: "/dashboard/settings", label: "Settings", icon: Settings2 },
   ];
   return (
     <>
@@ -93,6 +100,15 @@ export default function Sidebar({
       >
         <div className="sidebar-logo">
           <Logo />
+          <button
+            className="icon-button sidebar-collapse desktop-only"
+            onClick={onToggleCollapse}
+            aria-label={collapsed ? "Expand sidebar" : "Minimize sidebar"}
+            aria-expanded={!collapsed}
+            title={collapsed ? "Expand sidebar" : "Minimize sidebar"}
+          >
+            {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+          </button>
           <button
             className="icon-button mobile-only"
             onClick={onClose}
@@ -133,14 +149,27 @@ export default function Sidebar({
                   ? "active"
                   : "")
               }
+              title={collapsed ? label : undefined}
             >
               <Icon size={18} />
-              {label}
+              <span className="nav-item-label">{label}</span>
               {label === "SKU catalog" && (
                 <span className="nav-counter">{products.length}</span>
               )}
             </Link>
           ))}
+          <button
+            type="button"
+            className={"nav-item " + (path.startsWith("/dashboard/settings") ? "active" : "")}
+            onClick={() => {
+              onClose();
+              setSettingsOpen(true);
+            }}
+            title={collapsed ? "Settings" : undefined}
+          >
+            <Settings2 size={18} />
+            <span className="nav-item-label">Settings</span>
+          </button>
         </nav>
         <div className="sidebar-bottom">
           <Link
@@ -149,7 +178,7 @@ export default function Sidebar({
             onClick={onClose}
           >
             <BookOpen size={17} />
-            <span>
+            <span className="sidebar-link-copy">
               Brand guidelines<small>Tone, vocabulary & content rules</small>
             </span>
           </Link>
@@ -159,7 +188,7 @@ export default function Sidebar({
             className={"nav-item " + (path.includes("/help") ? "active" : "")}
           >
             <CircleHelp size={18} />
-            Help & getting started
+            <span className="nav-item-label">Help & getting started</span>
           </Link>
           <div className="user-card">
             <span className="avatar">
@@ -171,7 +200,7 @@ export default function Sidebar({
             </span>
             <span>
               {profile.name}
-              <small>{profile.team}</small>
+              <small>{profile.role ? `${profile.role} · ` : ""}{profile.team}</small>
             </span>
             <button
               className="icon-button"
@@ -184,6 +213,7 @@ export default function Sidebar({
           </div>
         </div>
       </aside>
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
     </>
   );
 }

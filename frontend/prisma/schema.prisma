@@ -110,6 +110,21 @@ enum MediaRole {
   VIDEO
 }
 
+enum AcquisitionSource {
+  GOOGLE
+  COLD_CALL
+  FACEBOOK
+  COLD_EMAIL
+  INSTAGRAM
+  OTHER
+}
+
+enum OnboardingStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
 // A person may join multiple teams. Roles are membership data, not global user properties.
 model User {
   id              String      @id @default(uuid()) @db.Uuid
@@ -135,6 +150,8 @@ model User {
   importBatches       ImportBatch[]
   uploadedAssets      MediaAsset[]
   sessions            Session[]
+  walletTopups        WalletTopup[]
+  onboardings         WorkspaceOnboarding[]
 
   @@map("users")
 }
@@ -179,6 +196,7 @@ model Team {
   folders     Folder[]
   workspaces  Workspace[]
   invitations Invitation[]
+  wallet      TeamWallet?
 
   @@index([createdById])
   @@map("teams")
@@ -252,10 +270,34 @@ model Workspace {
   products      Product[]
   assets        MediaAsset[]
   importBatches ImportBatch[]
+  onboarding    WorkspaceOnboarding?
+  intakes       ProductIntake[]
 
   @@index([teamId, archivedAt])
   @@index([folderId, teamId])
   @@map("workspaces")
+}
+
+// One onboarding record per workspace/user keeps first-run state resumable and
+// leaves invited members free to enter an existing workspace without setup.
+model WorkspaceOnboarding {
+  id                   String             @id @default(uuid()) @db.Uuid
+  workspaceId          String             @unique @map("workspace_id") @db.Uuid
+  userId               String             @map("user_id") @db.Uuid
+  status               OnboardingStatus   @default(NOT_STARTED)
+  currentStep          Int                @default(1) @map("current_step")
+  isOwner              Boolean            @default(false) @map("is_owner")
+  acquisitionSource    AcquisitionSource? @map("acquisition_source")
+  acquisitionOther     String?            @map("acquisition_other") @db.VarChar(255)
+  requestedMarketplaces Marketplace[]     @default([]) @map("requested_marketplaces")
+  completedAt          DateTime?          @map("completed_at") @db.Timestamptz(3)
+  createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  workspace            Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("workspace_onboardings")
 }
 
 // One brand per workspace matches the current UI; an agency creates a workspace per client brand.
@@ -268,6 +310,11 @@ model BrandContext {
   glossary       Json                         @default("{}") @db.JsonB
   bannedTerms    String[]                     @default([]) @map("banned_terms")
   painPoints     String?                      @map("pain_points") @db.Text
+  revenueRange   String?                      @map("revenue_range") @db.VarChar(80)
+  competitors    String[]                     @default([])
+  targetAgeMin   Int?                         @map("target_age_min")
+  targetAgeMax   Int?                         @map("target_age_max")
+  targetCountries String[]                    @default([]) @map("target_countries")
   embedding      Unsupported("vector(1536)")?
   embeddingModel String?                      @map("embedding_model") @db.VarChar(120)
   embeddedAt     DateTime?                    @map("embedded_at") @db.Timestamptz(3)
@@ -275,9 +322,24 @@ model BrandContext {
   updatedAt      DateTime                     @updatedAt @map("updated_at") @db.Timestamptz(3)
   workspace      Workspace                    @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
   products       Product[]
+  vectorChunks   BrandVectorChunk[]
 
   @@unique([id, workspaceId])
   @@map("brand_contexts")
+}
+
+// Multi-chunk vector embeddings for granular brand RAG retrieval.
+model BrandVectorChunk {
+  id             String                       @id @default(uuid()) @db.Uuid
+  brandContextId String                       @map("brand_context_id") @db.Uuid
+  chunkType      String                       @map("chunk_type") @db.VarChar(50)
+  content        String                       @db.Text
+  embedding      Unsupported("vector(1536)")?
+  createdAt      DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
+  brandContext   BrandContext                 @relation(fields: [brandContextId], references: [id], onDelete: Cascade)
+
+  @@index([brandContextId, chunkType])
+  @@map("brand_vector_chunks")
 }
 
 // Encrypted strings are envelopes from the eventual secrets service, never plaintext OAuth tokens.
@@ -291,6 +353,8 @@ model MarketplaceConnection {
   encryptedAccessToken  String?              @map("encrypted_access_token") @db.Text
   encryptedRefreshToken String?              @map("encrypted_refresh_token") @db.Text
   tokenExpiresAt        DateTime?            @map("token_expires_at") @db.Timestamptz(3)
+  keyVersion            Int                  @default(1) @map("key_version")
+  lastRefreshedAt       DateTime?            @map("last_refreshed_at") @db.Timestamptz(3)
   scopes                String[]             @default([])
   createdAt             DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt             DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -305,30 +369,63 @@ model MarketplaceConnection {
 
 // Merchant facts live on the parent product. Generated/approved copy lives in listing revisions.
 model Product {
-  id                  String           @id @default(uuid()) @db.Uuid
-  workspaceId         String           @map("workspace_id") @db.Uuid
-  brandContextId      String           @map("brand_context_id") @db.Uuid
-  importBatchId       String?          @map("import_batch_id") @db.Uuid
-  name                String           @db.VarChar(500)
-  categoryPath        String?          @map("category_path") @db.Text
-  rawInputText        String?          @map("raw_input_text") @db.Text
-  canonicalData       Json             @default("{}") @map("canonical_data") @db.JsonB
-  attributes          Json             @default("{}") @db.JsonB
-  descriptionTemplate String?          @map("description_template") @db.Text
-  createdAt           DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt           DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
-  deletedAt           DateTime?        @map("deleted_at") @db.Timestamptz(3)
-  workspace           Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
-  brandContext        BrandContext     @relation(fields: [brandContextId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
-  importBatch         ImportBatch?     @relation(fields: [importBatchId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  id                  String                     @id @default(uuid()) @db.Uuid
+  workspaceId         String                     @map("workspace_id") @db.Uuid
+  brandContextId      String                     @map("brand_context_id") @db.Uuid
+  importBatchId       String?                    @map("import_batch_id") @db.Uuid
+  name                String                     @db.VarChar(500)
+  brandName           String                     @map("brand_name") @db.VarChar(255)
+  categoryPath        String?                    @map("category_path") @db.Text
+  rawInputText        String?                    @map("raw_input_text") @db.Text
+  canonicalData       Json                       @default("{}") @map("canonical_data") @db.JsonB
+  attributes          Json                       @default("{}") @db.JsonB
+  descriptionTemplate String?                    @map("description_template") @db.Text
+  createdAt           DateTime                   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt           DateTime?                  @map("deleted_at") @db.Timestamptz(3)
+  workspace           Workspace                  @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  brandContext        BrandContext               @relation(fields: [brandContextId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  importBatch         ImportBatch?               @relation(fields: [importBatchId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
   variants            ProductVariant[]
   media               ProductMedia[]
+  marketplaceConfigs  ProductMarketplaceConfig[]
+  intake              ProductIntake?
 
   @@unique([id, workspaceId])
   @@index([workspaceId, deletedAt, createdAt])
   @@index([brandContextId, workspaceId])
   @@index([importBatchId, workspaceId])
   @@map("products")
+}
+
+// Merchant intake is intentionally separate from generated listing revisions.
+// Agent workers can consume this immutable-ish input snapshot later without
+// changing the product/listing contract.
+model ProductIntake {
+  id                  String      @id @default(uuid()) @db.Uuid
+  productId           String      @unique @map("product_id") @db.Uuid
+  workspaceId         String      @map("workspace_id") @db.Uuid
+  marketplace         Marketplace
+  productIdType       String?     @map("product_id_type") @db.VarChar(80)
+  materials           String?     @db.Text
+  dimensions          String?     @db.Text
+  featureFacts        Json        @default("[]") @map("feature_facts") @db.JsonB
+  rawProductInfo      String?     @map("raw_product_info") @db.Text
+  sourceFiles         Json        @default("[]") @map("source_files") @db.JsonB
+  imageManifest       Json        @default("[]") @map("image_manifest") @db.JsonB
+  status              JobStatus   @default(QUEUED)
+  statusMessage       String?     @map("status_message") @db.Text
+  queuedAt            DateTime    @default(now()) @map("queued_at") @db.Timestamptz(3)
+  processedAt         DateTime?   @map("processed_at") @db.Timestamptz(3)
+  createdAt           DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  product             Product     @relation(fields: [productId, workspaceId], references: [id, workspaceId], onDelete: Cascade, onUpdate: NoAction)
+  workspace           Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([id, workspaceId])
+  @@unique([productId, workspaceId])
+  @@index([workspaceId, status, queuedAt])
+  @@map("product_intakes")
 }
 
 // A sellable variant is marketplace-independent. INR amounts use exact decimals, not floats.
@@ -373,20 +470,24 @@ model ProductVariant {
 // CSV-first onboarding may create a listing before connecting a seller account.
 // ASIN/FSN and publication state belong to this channel, not the universal product variant.
 model MarketplaceListing {
-  id                String                 @id @default(uuid()) @db.Uuid
-  workspaceId       String                 @map("workspace_id") @db.Uuid
-  variantId         String                 @map("variant_id") @db.Uuid
-  connectionId      String?                @map("connection_id") @db.Uuid
+  id                String                    @id @default(uuid()) @db.Uuid
+  workspaceId       String                    @map("workspace_id") @db.Uuid
+  variantId         String                    @map("variant_id") @db.Uuid
+  connectionId      String?                   @map("connection_id") @db.Uuid
+  configId          String?                   @map("config_id") @db.Uuid
   platform          Marketplace
-  marketplaceRegion String                 @default("IN") @map("marketplace_region") @db.VarChar(40)
-  externalId        String?                @map("external_id") @db.VarChar(255)
-  productUrl        String?                @map("product_url") @db.Text
-  status            ListingStatus          @default(DRAFT)
-  publicationStatus PublicationStatus      @default(NEVER_PUBLISHED) @map("publication_status")
-  createdAt         DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt         DateTime               @updatedAt @map("updated_at") @db.Timestamptz(3)
-  variant           ProductVariant         @relation(fields: [variantId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
-  connection        MarketplaceConnection? @relation(fields: [connectionId, workspaceId, platform], references: [id, workspaceId, platform], onDelete: Restrict, onUpdate: NoAction)
+  marketplaceRegion String                    @default("IN") @map("marketplace_region") @db.VarChar(40)
+  productType       String?                   @map("product_type") @db.VarChar(120)
+  browseNodeId      String?                   @map("browse_node_id") @db.VarChar(120)
+  externalId        String?                   @map("external_id") @db.VarChar(255)
+  productUrl        String?                   @map("product_url") @db.Text
+  status            ListingStatus             @default(DRAFT)
+  publicationStatus PublicationStatus         @default(NEVER_PUBLISHED) @map("publication_status")
+  createdAt         DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  variant           ProductVariant            @relation(fields: [variantId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  connection        MarketplaceConnection?    @relation(fields: [connectionId, workspaceId, platform], references: [id, workspaceId, platform], onDelete: Restrict, onUpdate: NoAction)
+  config            ProductMarketplaceConfig? @relation(fields: [configId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
   revisions         ListingRevision[]
   generationJobs    GenerationJob[]
   publishJobs       PublishJob[]
@@ -398,7 +499,57 @@ model MarketplaceListing {
   @@index([workspaceId, platform, publicationStatus])
   @@index([connectionId, workspaceId, platform])
   @@index([variantId, workspaceId])
+  @@index([configId, workspaceId])
   @@map("marketplace_listings")
+}
+
+// One category and pinned template for every variant of a product on a channel.
+// SQL guards make this assignment immutable. Other channels may have their own taxonomy.
+model ProductMarketplaceConfig {
+  id                String               @id @default(uuid()) @db.Uuid
+  productId         String               @map("product_id") @db.Uuid
+  workspaceId       String               @map("workspace_id") @db.Uuid
+  platform          Marketplace
+  marketplaceRegion String               @default("IN") @map("marketplace_region") @db.VarChar(40)
+  templateId        String               @map("template_id") @db.Uuid
+  browseNodeId      String               @map("browse_node_id") @db.VarChar(120)
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  product           Product              @relation(fields: [productId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  template          MarketplaceTemplate  @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  listings          MarketplaceListing[]
+
+  @@unique([productId, platform, marketplaceRegion])
+  @@unique([id, workspaceId])
+  @@index([workspaceId, platform])
+  @@index([templateId])
+  @@map("product_marketplace_configs")
+}
+
+// Imported Seller Central flat-file definitions are immutable, versioned reference data.
+// Never make category-specific workbook columns universal Product/ProductVariant columns.
+model MarketplaceTemplate {
+  id             String                     @id @default(uuid()) @db.Uuid
+  platform       Marketplace
+  marketplaceId  String                     @map("marketplace_id") @db.VarChar(120)
+  productType    String                     @map("product_type") @db.VarChar(120)
+  language       String                     @db.VarChar(20)
+  sourceFilename String                     @map("source_filename") @db.VarChar(255)
+  sourceSha256   String                     @map("source_sha256") @db.Char(64)
+  schemaSha256   String                     @map("schema_sha256") @db.Char(64)
+  parserVersion  Int                        @map("parser_version")
+  fieldCount     Int                        @map("field_count")
+  fields         Json                       @db.JsonB
+  browseNodes    Json                       @map("browse_nodes") @db.JsonB
+  sourceMetadata Json?                      @map("source_metadata") @db.JsonB
+  isActive       Boolean                    @default(true) @map("is_active")
+  importedAt     DateTime                   @default(now()) @map("imported_at") @db.Timestamptz(3)
+  payloads       MarketplacePayload[]
+  productConfigs ProductMarketplaceConfig[]
+  generationJobs GenerationJob[]
+
+  @@unique([platform, marketplaceId, productType, language, schemaSha256])
+  @@index([platform, marketplaceId, productType, language, isActive])
+  @@map("marketplace_templates")
 }
 
 // Append a new revision for every saved edit. The highest revision number is the current draft.
@@ -410,6 +561,7 @@ model ListingRevision {
   number               Int
   createdById          String?             @map("created_by_id") @db.Uuid
   generationJobId      String?             @map("generation_job_id") @db.Uuid
+  parentRevisionId     String?             @map("parent_revision_id") @db.Uuid
   title                String              @default("") @db.Text
   description          String              @default("") @db.Text
   bulletPoints         String[]            @default([]) @map("bullet_points")
@@ -422,7 +574,10 @@ model ListingRevision {
   createdAt            DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
   listing              MarketplaceListing  @relation(fields: [listingId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
   createdBy            User?               @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  generationJob        GenerationJob?      @relation(fields: [generationJobId, listingId, workspaceId], references: [id, listingId, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  generationJob        GenerationJob?      @relation("GenerationOutput", fields: [generationJobId, listingId, workspaceId], references: [id, listingId, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  basedJobs            GenerationJob[]     @relation("GenerationBase")
+  parentRevision       ListingRevision?    @relation("RevisionParentHistory", fields: [parentRevisionId], references: [id], onDelete: SetNull)
+  childRevisions       ListingRevision[]   @relation("RevisionParentHistory")
   payload              MarketplacePayload?
   validations          ValidationRun[]
   approvals            ListingApproval[]
@@ -434,46 +589,58 @@ model ListingRevision {
   @@index([listingId, workspaceId])
   @@index([createdById])
   @@index([generationJobId, listingId, workspaceId])
+  @@index([parentRevisionId])
   @@map("listing_revisions")
 }
 
 // Platform's long-tail attributes are versioned with the listing revision, avoiding a circular FK.
 model MarketplacePayload {
-  id              String          @id @default(uuid()) @db.Uuid
-  revisionId      String          @unique @map("revision_id") @db.Uuid
-  workspaceId     String          @map("workspace_id") @db.Uuid
-  categoryCode    String?         @map("category_code") @db.VarChar(255)
-  templateVersion String?         @map("template_version") @db.VarChar(120)
-  rawAttributes   Json            @default("{}") @map("raw_attributes") @db.JsonB
-  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
-  revision        ListingRevision @relation(fields: [revisionId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  id              String               @id @default(uuid()) @db.Uuid
+  revisionId      String               @unique @map("revision_id") @db.Uuid
+  workspaceId     String               @map("workspace_id") @db.Uuid
+  categoryCode    String?              @map("category_code") @db.VarChar(255)
+  templateVersion String?              @map("template_version") @db.VarChar(120)
+  templateId      String?              @map("template_id") @db.Uuid
+  rawAttributes   Json                 @default("{}") @map("raw_attributes") @db.JsonB
+  createdAt       DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  revision        ListingRevision      @relation(fields: [revisionId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  template        MarketplaceTemplate? @relation(fields: [templateId], references: [id], onDelete: Restrict)
 
   @@unique([revisionId, workspaceId])
+  @@index([templateId])
   @@map("marketplace_payloads")
 }
 
 model GenerationJob {
-  id            String             @id @default(uuid()) @db.Uuid
-  listingId     String             @map("listing_id") @db.Uuid
-  workspaceId   String             @map("workspace_id") @db.Uuid
-  requestedById String?            @map("requested_by_id") @db.Uuid
-  queueJobId    String?            @unique @map("queue_job_id") @db.VarChar(255)
-  status        JobStatus          @default(QUEUED)
-  attempts      Int                @default(0)
-  maxAttempts   Int                @default(3) @map("max_attempts")
-  inputSnapshot Json               @default("{}") @map("input_snapshot") @db.JsonB
-  errorReport   Json?              @map("error_report") @db.JsonB
-  createdAt     DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
-  startedAt     DateTime?          @map("started_at") @db.Timestamptz(3)
-  completedAt   DateTime?          @map("completed_at") @db.Timestamptz(3)
-  listing       MarketplaceListing @relation(fields: [listingId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
-  requestedBy   User?              @relation(fields: [requestedById], references: [id], onDelete: SetNull)
-  revisions     ListingRevision[]
+  id             String               @id @default(uuid()) @db.Uuid
+  listingId      String               @map("listing_id") @db.Uuid
+  workspaceId    String               @map("workspace_id") @db.Uuid
+  requestedById  String?              @map("requested_by_id") @db.Uuid
+  queueJobId     String?              @unique @map("queue_job_id") @db.VarChar(255)
+  idempotencyKey String               @map("idempotency_key") @db.VarChar(255)
+  baseRevisionId String?              @map("base_revision_id") @db.Uuid
+  templateId     String?              @map("template_id") @db.Uuid
+  status         JobStatus            @default(QUEUED)
+  attempts       Int                  @default(0)
+  maxAttempts    Int                  @default(3) @map("max_attempts")
+  inputSnapshot  Json                 @default("{}") @map("input_snapshot") @db.JsonB
+  errorReport    Json?                @map("error_report") @db.JsonB
+  createdAt      DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  startedAt      DateTime?            @map("started_at") @db.Timestamptz(3)
+  completedAt    DateTime?            @map("completed_at") @db.Timestamptz(3)
+  listing        MarketplaceListing   @relation(fields: [listingId, workspaceId], references: [id, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  requestedBy    User?                @relation(fields: [requestedById], references: [id], onDelete: SetNull)
+  revisions      ListingRevision[]    @relation("GenerationOutput")
+  baseRevision   ListingRevision?     @relation("GenerationBase", fields: [baseRevisionId, listingId, workspaceId], references: [id, listingId, workspaceId], onDelete: Restrict, onUpdate: NoAction)
+  template       MarketplaceTemplate? @relation(fields: [templateId], references: [id], onDelete: Restrict)
 
   @@unique([id, listingId, workspaceId])
+  @@unique([workspaceId, idempotencyKey])
   @@index([listingId, workspaceId])
   @@index([workspaceId, status, createdAt])
   @@index([requestedById])
+  @@index([baseRevisionId, listingId, workspaceId])
+  @@index([templateId])
   @@map("generation_jobs")
 }
 
@@ -626,4 +793,116 @@ model ImportBatch {
   @@index([sourceAssetId, workspaceId])
   @@index([requestedById])
   @@map("import_batches")
+}
+
+// Cross-platform taxonomy mapping between Amazon product types and Flipkart verticals.
+model CategoryMapping {
+  id                String      @id @default(uuid()) @db.Uuid
+  amazonProductType String      @map("amazon_product_type") @db.VarChar(120)
+  flipkartVertical  String      @map("flipkart_vertical") @db.VarChar(120)
+  canonicalCategory String      @map("canonical_category") @db.VarChar(120)
+  targetPlatform    Marketplace @default(AMAZON) @map("target_platform")
+  createdAt         DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@unique([amazonProductType, flipkartVertical])
+  @@index([canonicalCategory])
+  @@index([targetPlatform])
+  @@map("category_mappings")
+}
+
+// Transactional outbox pattern for reliable async background job dispatching.
+model OutboxEvent {
+  id            String    @id @default(uuid()) @db.Uuid
+  aggregateType String    @map("aggregate_type") @db.VarChar(100)
+  aggregateId   String    @map("aggregate_id") @db.Uuid
+  eventType     String    @map("event_type") @db.VarChar(100)
+  payload       Json      @db.JsonB
+  status        String    @default("PENDING") @db.VarChar(20)
+  retryCount    Int       @default(0) @map("retry_count")
+  lastError     String?   @map("last_error") @db.Text
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  processedAt   DateTime? @map("processed_at") @db.Timestamptz(3)
+
+  @@index([status, createdAt])
+  @@index([aggregateType, aggregateId])
+  @@map("outbox_events")
+}
+
+// Transaction type for team wallet ledger operations
+enum TransactionType {
+  TOPUP_CREDIT
+  SKU_LISTING_DEDUCTION
+  REFUND_CREDIT
+}
+
+// One wallet per team. Balance is an exact decimal amount (currency: INR).
+model TeamWallet {
+  id           String              @id @default(uuid()) @db.Uuid
+  teamId       String              @unique @map("team_id") @db.Uuid
+  balance      Decimal             @default(0.00) @db.Decimal(14, 2)
+  currency     String              @default("INR") @db.Char(3)
+  createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+  team         Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  topups       WalletTopup[]
+  transactions WalletTransaction[]
+
+  @@map("team_wallets")
+}
+
+// Top-up log when any team user adds funds to the team wallet.
+model WalletTopup {
+  id            String     @id @default(uuid()) @db.Uuid
+  walletId      String     @map("wallet_id") @db.Uuid
+  userId        String     @map("user_id") @db.Uuid
+  amount        Decimal    @db.Decimal(14, 2)
+  paymentMethod String?    @map("payment_method") @db.VarChar(50)
+  paymentRef    String?    @map("payment_ref") @db.VarChar(255)
+  status        JobStatus  @default(COMPLETED)
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  wallet        TeamWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  user          User       @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([walletId, createdAt])
+  @@index([userId])
+  @@map("wallet_topups")
+}
+
+// Rate card per Marketplace destination (Amazon IN vs Flipkart IN) and per SKU/Variant.
+// Set to 0.00 for MVP, non-zero in production.
+model BillingRateCard {
+  id                String      @id @default(uuid()) @db.Uuid
+  platform          Marketplace
+  marketplaceRegion String      @default("IN") @map("marketplace_region") @db.VarChar(40)
+  baseSkuFee        Decimal     @default(0.00) @map("base_sku_fee") @db.Decimal(10, 2)
+  perVariantFee     Decimal     @default(0.00) @map("per_variant_fee") @db.Decimal(10, 2)
+  currency          String      @default("INR") @db.Char(3)
+  isActive          Boolean     @default(true) @map("is_active")
+  createdAt         DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@unique([platform, marketplaceRegion])
+  @@map("billing_rate_cards")
+}
+
+// Ledger tracking wallet balance additions and per-SKU/Variant listing deductions.
+model WalletTransaction {
+  id           String          @id @default(uuid()) @db.Uuid
+  walletId     String          @map("wallet_id") @db.Uuid
+  variantId    String?         @map("variant_id") @db.Uuid
+  listingId    String?         @map("listing_id") @db.Uuid
+  platform     Marketplace?
+  type         TransactionType
+  amount       Decimal         @db.Decimal(14, 2)
+  balanceAfter Decimal         @map("balance_after") @db.Decimal(14, 2)
+  description  String          @db.VarChar(500)
+  metadata     Json            @default("{}") @db.JsonB
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  wallet       TeamWallet      @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId, createdAt])
+  @@index([variantId])
+  @@index([listingId])
+  @@map("wallet_transactions")
 }

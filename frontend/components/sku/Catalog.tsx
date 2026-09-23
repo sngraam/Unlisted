@@ -25,7 +25,7 @@ import { useWorkspace } from "@/lib/stores/workspaceStore";
 import SkuStatusBadge from "./SkuStatusBadge";
 import MarketplaceBadge from "@/components/ui/MarketplaceBadge";
 import CsvUploader from "./CsvUploader";
-import { exportProducts } from "@/lib/csv";
+import { downloadListings } from "@/lib/listing-export";
 export function Score({ value }: { value: number }) {
   const color =
     value >= 90 ? "var(--green)" : value >= 70 ? "var(--yellow)" : "var(--red)";
@@ -49,6 +49,8 @@ export default function Catalog() {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<string[]>([]);
   const [upload, setUpload] = useState(false);
+  const [exportFormat, setExportFormat] = useState<"xlsm" | "csv">("xlsm");
+  const [exporting, setExporting] = useState(false);
   useEffect(() => {
     setQuery(params.get("q") || "");
   }, [params]);
@@ -67,7 +69,7 @@ export default function Catalog() {
       (channel === "All channels" || p.marketplace === channel) &&
       (status === "All statuses" || p.status === status) &&
       (tab === "All products" ||
-        (tab === "Ready for review" && p.status === "Ready") ||
+        (tab === "Ready for review" && p.status === "Ready" && !p.approved) ||
         (tab === "Published" && p.status === "Published") ||
         (tab === "Needs attention" && p.status === "Failed")) &&
       (date === "Any time" ||
@@ -101,7 +103,7 @@ export default function Catalog() {
     },
     {
       label: "Ready for review",
-      value: products.filter((p) => p.status === "Ready").length,
+      value: products.filter((p) => p.status === "Ready" && !p.approved).length,
       icon: Sparkles,
       foot: "Waiting for your approval",
       view: "Ready for review",
@@ -267,15 +269,24 @@ export default function Catalog() {
         {selected.length > 0 && (
           <div className="catalog-tools">
             <span className="muted">{selected.length} selected</span>
+            <select aria-label="Export format" value={exportFormat} disabled={exporting} onChange={(event) => setExportFormat(event.target.value as "xlsm" | "csv")}>
+              <option value="xlsm">Excel template (.xlsm)</option>
+              <option value="csv">Template tab (.csv)</option>
+            </select>
             <button
               className="btn small"
-              onClick={() => {
-                exportProducts(products.filter((p) => selected.includes(p.id)));
-                notify("Review CSV downloaded.");
+              disabled={exporting}
+              onClick={async () => {
+                setExporting(true);
+                try {
+                  await downloadListings(products.filter((p) => selected.includes(p.id)), exportFormat);
+                  notify("Amazon templates downloaded. Different categories are separate files.");
+                } catch (error) { notify(error instanceof Error ? error.message : "Export failed."); }
+                finally { setExporting(false); }
               }}
             >
               <Download size={13} />
-              Export selected
+              {exporting ? "Preparing…" : "Export approved"}
             </button>
             <button className="text-link" onClick={() => setSelected([])}>
               Clear
@@ -304,6 +315,8 @@ export default function Catalog() {
             </thead>
             <tbody>
               {visible.map((p, i) => {
+                const locked = p.status === "Processing";
+                const destination = locked ? "/dashboard/skus" : "/dashboard/skus/" + p.id + (p.status === "Ready" ? "/review" : "");
                 const Icon = p.category.includes("Ethnic")
                   ? Shirt
                   : p.category.includes("Electronics")
@@ -334,7 +347,10 @@ export default function Catalog() {
                     <td className="cell-product" role="cell">
                       <Link
                         className="product-cell"
-                        href={"/dashboard/skus/" + p.id}
+                        href={destination}
+                        aria-disabled={locked}
+                        title={locked ? "This product is locked while processing." : undefined}
+                        onClick={locked ? (event) => event.preventDefault() : undefined}
                       >
                         <span className={"product-icon hue" + (i % 4)}>
                           <Icon size={20} />
@@ -360,7 +376,7 @@ export default function Catalog() {
                       <MarketplaceBadge marketplace={p.marketplace} />
                     </td>
                     <td className="cell-status" data-label="Status" role="cell">
-                      <SkuStatusBadge status={p.status} />
+                      <SkuStatusBadge status={p.status} approved={p.approved} />
                     </td>
                     <td
                       className="cell-score"
@@ -381,9 +397,12 @@ export default function Catalog() {
                     </td>
                     <td className="cell-action" role="cell">
                       <Link
-                        href={"/dashboard/skus/" + p.id}
+                        href={destination}
                         className="icon-button"
-                        aria-label={"Edit " + p.name}
+                        aria-label={locked ? p.name + " is processing" : "Edit " + p.name}
+                        aria-disabled={locked}
+                        title={locked ? "Locked while processing" : "Edit product"}
+                        onClick={locked ? (event) => event.preventDefault() : undefined}
                       >
                         <ArrowUpRight size={14} />
                       </Link>
@@ -454,9 +473,10 @@ export default function Catalog() {
       <div className="catalog-note">
         <Sparkles size={13} />
         <span>
-          Made for your next <em>ready-to-review</em> listing. Sample data stays
-          in PostgreSQL.
+          Build a marketplace-ready listing from your verified product facts.
         </span>
+        <Link className="text-link" href="/dashboard/skus/new">Create a product</Link>
+        <Link className="text-link" href="/dashboard/settings/brand">Review brand guidelines</Link>
       </div>
       {upload && <CsvUploader onClose={() => setUpload(false)} />}
     </>

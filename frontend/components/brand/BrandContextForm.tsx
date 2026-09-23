@@ -21,6 +21,11 @@ export default function BrandContextForm({
           glossary: String(data.get("glossary")).trim(),
           bannedTerms: String(data.get("bannedTerms")).trim(),
           painPoints: String(data.get("painPoints")).trim(),
+          revenueRange: String(data.get("revenueRange") || "").trim(),
+          competitors: String(data.get("competitors") || "").trim(),
+          targetAgeMin: String(data.get("targetAgeMin") || "").trim(),
+          targetAgeMax: String(data.get("targetAgeMax") || "").trim(),
+          targetCountries: String(data.get("targetCountries") || "").trim(),
         });
         if (!saved) return;
         notify("Brand context saved to PostgreSQL.");
@@ -70,6 +75,36 @@ export default function BrandContextForm({
       <label className="field">
         <span className="field-label">Customer needs & pain points</span>
         <textarea name="painPoints" defaultValue={brand.painPoints} />
+      </label>
+      <div className="form-grid">
+        <label className="field">
+          <span className="field-label">Annual brand revenue</span>
+          <select name="revenueRange" defaultValue={brand.revenueRange}>
+            <option value="">Choose a range</option>
+            <option>Under ₹10L</option>
+            <option>₹10L–₹50L</option>
+            <option>₹50L–₹2Cr</option>
+            <option>₹2Cr–₹10Cr</option>
+            <option>Over ₹10Cr</option>
+          </select>
+        </label>
+        <label className="field">
+          <span className="field-label">Target countries</span>
+          <input name="targetCountries" defaultValue={brand.targetCountries} placeholder="India, UAE" />
+        </label>
+        <label className="field">
+          <span className="field-label">Target age, from</span>
+          <input name="targetAgeMin" inputMode="numeric" defaultValue={brand.targetAgeMin} placeholder="18" />
+        </label>
+        <label className="field">
+          <span className="field-label">Target age, to</span>
+          <input name="targetAgeMax" inputMode="numeric" defaultValue={brand.targetAgeMax} placeholder="45" />
+        </label>
+      </div>
+      <label className="field">
+        <span className="field-label">Main competitors</span>
+        <input name="competitors" defaultValue={brand.competitors} placeholder="Brand A, Brand B" />
+        <span className="field-hint">Separate competitors with commas.</span>
       </label>
       <button className="btn primary" type="submit" disabled={saving}>
         {buttonLabel}

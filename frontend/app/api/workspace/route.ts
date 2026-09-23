@@ -4,7 +4,7 @@ import { db } from "@/lib/server/db";
 import { workspaceAccess, requireOrigin, HttpError } from "@/lib/server/auth";
 import { apiError, readJson } from "@/lib/server/http";
 import { readWorkspace } from "@/lib/server/catalog";
-import { brandInput, profileInput } from "@/lib/server/contracts";
+import { brandInput, onboardingInput, profileInput } from "@/lib/server/contracts";
 export const dynamic = "force-dynamic";
 export async function GET() {
   try {
@@ -28,9 +28,10 @@ export async function PATCH(request: Request) {
     await db().$transaction(async (tx) => {
       if (input.brand) {
         const b = brandInput.parse(input.brand);
-        await tx.brandContext.update({
+        await tx.brandContext.upsert({
           where: { workspaceId: access.workspace.id },
-          data: {
+          create: {
+            workspaceId: access.workspace.id,
             name: b.name,
             tone: b.tone,
             glossary: { text: b.glossary },
@@ -39,8 +40,26 @@ export async function PATCH(request: Request) {
               .map((s) => s.trim())
               .filter(Boolean),
             painPoints: b.painPoints,
+            revenueRange: b.revenueRange || null,
+            competitors: b.competitors.split(",").map((s) => s.trim()).filter(Boolean),
+            targetAgeMin: b.targetAgeMin ? Number(b.targetAgeMin) : null,
+            targetAgeMax: b.targetAgeMax ? Number(b.targetAgeMax) : null,
+            targetCountries: b.targetCountries.split(",").map((s) => s.trim()).filter(Boolean),
+          },
+          update: {
+            name: b.name,
+            tone: b.tone,
+            glossary: { text: b.glossary },
+            bannedTerms: b.bannedTerms.split(",").map((s) => s.trim()).filter(Boolean),
+            painPoints: b.painPoints,
+            revenueRange: b.revenueRange || null,
+            competitors: b.competitors.split(",").map((s) => s.trim()).filter(Boolean),
+            targetAgeMin: b.targetAgeMin ? Number(b.targetAgeMin) : null,
+            targetAgeMax: b.targetAgeMax ? Number(b.targetAgeMax) : null,
+            targetCountries: b.targetCountries.split(",").map((s) => s.trim()).filter(Boolean),
           },
         });
+        await tx.workspace.update({ where: { id: access.workspace.id }, data: { name: b.name } });
         await tx.listingApproval.updateMany({
           where: { workspaceId: access.workspace.id, revokedAt: null },
           data: {
@@ -67,13 +86,32 @@ export async function PATCH(request: Request) {
                   : "INDIVIDUAL",
           },
         });
-        await tx.workspace.update({
-          where: { id: access.workspace.id },
-          data: { name: p.workspace },
-        });
-        await tx.team.update({
-          where: { id: access.workspace.teamId },
-          data: { name: p.team },
+        if (p.workspace) await tx.workspace.update({ where: { id: access.workspace.id }, data: { name: p.workspace } });
+        if (p.team) await tx.team.update({ where: { id: access.workspace.teamId }, data: { name: p.team } });
+      } else if (input.onboarding) {
+        const onboarding = onboardingInput.parse(input.onboarding);
+        const source = onboarding.source === "cold-call" ? "COLD_CALL" : onboarding.source === "cold-email" ? "COLD_EMAIL" : onboarding.source.toUpperCase();
+        await tx.workspaceOnboarding.upsert({
+          where: { workspaceId: access.workspace.id },
+          create: {
+            workspaceId: access.workspace.id,
+            userId: access.user.id,
+            status: "COMPLETED",
+            currentStep: 4,
+            isOwner: access.user.id === access.workspace.team.createdById,
+            acquisitionSource: source as "GOOGLE" | "COLD_CALL" | "FACEBOOK" | "COLD_EMAIL" | "INSTAGRAM" | "OTHER",
+            acquisitionOther: onboarding.other || null,
+            requestedMarketplaces: onboarding.marketplaces.map((marketplace) => marketplace === "Amazon" ? "AMAZON" : "FLIPKART"),
+            completedAt: new Date(),
+          },
+          update: {
+            status: "COMPLETED",
+            currentStep: 4,
+            acquisitionSource: source as "GOOGLE" | "COLD_CALL" | "FACEBOOK" | "COLD_EMAIL" | "INSTAGRAM" | "OTHER",
+            acquisitionOther: onboarding.other || null,
+            requestedMarketplaces: onboarding.marketplaces.map((marketplace) => marketplace === "Amazon" ? "AMAZON" : "FLIPKART"),
+            completedAt: new Date(),
+          },
         });
       } else throw new HttpError(400, "Provide brand or profile settings.");
     });

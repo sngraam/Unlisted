@@ -3,7 +3,9 @@
 > **2026-09-13 local database update:** Sign-in and workspace persistence now use local PostgreSQL + Prisma. See [test/README.md](test/README.md) for startup, seed data and account details. Earlier prototype-only sections below are historical where they conflict with this update.
 # Project status and build roadmap
 
-The frontend is a working browser-local prototype, and the canonical Prisma schema plus initial migration are implemented. Database-backed APIs, authentication, workers, AI generation and marketplace integrations remain to be built.
+**2026-09-19:** Category-first SKU intake, locked product/category contracts, typed brand identity and per-SKU logistics are implemented. Dynamic category answers remain validated, versioned JSONB. See [the schema review and design](frontend/CATALOG-DESIGN.md) for XLSM evidence, migrations, scalability decisions and remaining production work.
+
+The frontend has PostgreSQL-backed sign-in and catalog CRUD, while AI generation and marketplace publishing remain future work. The canonical Prisma schema includes a versioned Amazon category-template catalog populated locally from KURTA, PANTS, SHIRT and SHORTS XLSM files. The local demo catalog now has four fictional product families/eight variants with per-variant dynamic category fields; historical generic fixtures are archived. See [the template ingestion guide](test/amazon-templates/README.md) for adding another category without adding database columns.
 
 Read [`TASK.md`](TASK.md) for the ordered MVP implementation tasks, dependencies and release acceptance criteria. Read [`Memory.md`](Memory.md) for the current handoff and historical decisions, [`frontend/README.md`](frontend/README.md) for the UI edit guide, and [`frontend/prisma/README.md`](frontend/prisma/README.md) for the database design. The directory tree below includes intended scaffolds, not only finished features.
 

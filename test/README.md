@@ -1,6 +1,6 @@
 # Local PostgreSQL workspace
 
-The frontend now uses Next.js server routes + Prisma + PostgreSQL. `seed-data.json` is the source for the 12 synthetic catalog products, their variants/content, profile, team, workspace and brand settings. See `DATASET.md` for the exact frontend-to-Prisma mapping. Existing `data.prisma` and `data.json` are preserved.
+The frontend uses Next.js server routes + Prisma + PostgreSQL. `seed-data.json` now supplies four fictional Amazon product families and eight variants modeled on the imported KURTA, PANTS, SHIRT and SHORTS XLSM template choices, plus profile/team/workspace/brand settings. See `DATASET.md` for the exact frontend-to-Prisma mapping. Existing `data.prisma` and `data.json` are preserved.
 
 ## Start and sign in
 
@@ -38,9 +38,11 @@ The runtime uses system libraries; if another machine is missing dependencies, i
 
 - `DATASET.md`: field ownership and frontend-to-Prisma mapping.
 - `seed-data.json`: editable seed input. Missing seed products are inserted; existing records are retained.
+- `build-template-seed.py`: deterministically rebuilds the source data from the four normalized XLSM definitions; no macros or real seller facts are used.
 - `seed-contract.ts` and `validate-seed.ts`: runtime validation for every dataset field; run `npm run test:dataset`.
 - `seed-local.ts`: repeatable seed using stable IDs and one transaction. The local demo password is salted and hashed with scrypt.
 - `database-snapshot.json`: exported normalized database records for inspection, excluding password hashes, sessions and credentials. This is a snapshot, not a restore-ready backup.
+- `amazon-templates/README.md`: versioned template ingestion, dynamic category attributes and official-export limitations.
 - `export-local.ts`: refresh that snapshot with `cd frontend && npm run db:export:local`.
 - `frontend/tests/local-integration.ts`: run `npm run test:local` from `frontend` while the app/database are running. It creates separate temporary test tenants and cleans up only those records.
 
@@ -52,7 +54,11 @@ The browser's old `listing-agent-demo-v1` data is no longer loaded or written. I
 
 There is no anonymous demo-workspace shortcut. Protected pages and every workspace API require a valid server session and team membership. Sessions use opaque HttpOnly/SameSite cookies and are revoked on logout. Mutations require the configured same-origin request. The current workspace is the first active workspace available through the user's membership; a multi-workspace selector is still future work.
 
-Seeded Published/Processing/Failed labels are historical **fixture display values**, stored in product metadata. Database listings remain DRAFT/NEVER_PUBLISHED, with no invented publication jobs or seller connections. Editing a sample removes its historical badge override and derives its review state. Review checks are local rules, not official marketplace certification. AI buttons still insert sample copy; CSV is a review export. Real OAuth, invitations, Google login, queue/LLM execution and marketplace publishing remain unimplemented.
+The four XLSM-backed fixtures have no invented publication jobs or seller connections. Legacy fixture products are archived but retained for history. Imported unconditional category requirements are displayed in the editor; local review checks and template completeness are not marketplace certification. AI buttons still insert sample copy. Approved downloads now fill the original Amazon Template tab as XLSM or CSV; `npm run test:export` verifies every source column and workbook preservation, and `npm run test:local` checks authorization and mixed-category ZIPs. Real OAuth, invitations, Google login, queue/LLM execution and marketplace publishing remain unimplemented.
+
+## Verified on 2026-09-18
+
+Local migration and four template imports succeeded. Dataset validation, 19 schema tests, three parser/row tests, authenticated API integration, four visible products/eight pinned variants, TypeScript and the production build passed. The saved template attributes round-trip through PostgreSQL. The current local URL is http://localhost:3000/login with `sngram` / `sngram` after starting PostgreSQL and Next.js; hosted Supabase/Vercel have not received this new migration or seed.
 
 For this local iteration, uploaded raster images are bounded data URLs in product JSON. Object storage/media processing remains pending. Login throttling is process-local; production needs durable shared limits, account recovery/verification, secure HTTPS deployment and the remaining `TASK.md` acceptance criteria. No production rollout is implied by this local setup.
 

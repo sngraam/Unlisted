@@ -6,6 +6,16 @@
 
 ## Design decisions
 
+### Category contracts and static facts (2026-09-19)
+
+See [CATALOG-DESIGN.md](../CATALOG-DESIGN.md) for the four-XLSM field review, storage map and rollout limits. `Product.brandName` is now typed. `ProductMarketplaceConfig` locks category, browse node and template version per product/channel, shared by all variants. SQL guards enforce category ownership, exact-key JSONB contracts, immutable templates/revisions/payloads and generation input versions. Origin, HSN and weight are edited per SKU. The two new migrations preserve current records and backfill four local category configurations. Apply all migrations before deploying the regenerated Prisma client. Initial catalog pagination, the AI worker, object storage and official marketplace delivery remain separate production work.
+
+### Category template versions (2026-09-18)
+
+`MarketplaceTemplate` is an immutable, global reference catalog imported from reviewed Amazon XLSM workbooks. Scope is platform + marketplace ID + product type + language; a PostgreSQL partial unique index permits one active version per scope. A semantic SHA-256 makes re-import idempotent. Template fields and choices are ordered JSONB, so a new category adds data rather than changing product tables. Repeated Amazon columns retain exact headers while sharing a normalized pattern for common concepts. `MarketplaceListing` stores selected product type and browse node; `MarketplacePayload.templateId` can pin the exact definition for a reviewed revision. Old versions remain because payloads reference them restrictively. See [Amazon template ingestion](../../test/amazon-templates/README.md) for the extractor, import command and current four-category inventory.
+
+The template source is category metadata, not actual merchant facts or a guarantee of Amazon acceptance. The current frontend still needs a template-driven editor, category-specific answers, live validation and official export/submission before those records can publish.
+
 - **One brand context per workspace.** An agency can create a workspace for each client brand. Individual and freelance users also work inside teams/workspaces; a team can contain just one person.
 - **Users can join multiple teams.** Their role belongs to `TeamMembership`, not to the global user record.
 - **Folders organize workspaces within a team.** A composite foreign key prevents assigning a workspace to another team's folder.
@@ -92,6 +102,8 @@ erDiagram
 | `score`                                                 | Most recent applicable ValidationRun.score                                     |
 | `approved`                                              | Active ListingApproval for the current revision, not a mutable boolean         |
 | Catalog `status`                                        | API-derived presentation of listing, generation, audit, and publication states |
+| Onboarding source and progress                          | WorkspaceOnboarding status, current step, acquisition source, and target marketplaces |
+| Product source files and marketplace facts              | ProductIntake queue status, file manifest, product ID type, materials, dimensions, and feature facts |
 
 Keep JSON structured; it is not a replacement for foreign keys. `merchantSnapshot` should capture the variant facts, prices, inventory, and media keys used for review. `brandContextSnapshot` records the exact brand rules used. `targetSnapshot` records the connection ID, seller ID, platform, marketplace region, and template/version used for a publish attempt. Never include OAuth tokens in snapshots.
 

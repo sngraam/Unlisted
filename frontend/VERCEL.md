@@ -22,7 +22,7 @@ Node is constrained to major version 22 so Vercel does not automatically select 
 Set these server-side environment variables for the deployment environment in Vercel:
 
 - `DATABASE_URL`: the Supabase transaction-pooler URL on port 6543, ending in `?pgbouncer=true&uselibpqcompat=true&sslmode=require`. The database needs pgvector for the existing migration. The laptop's `127.0.0.1:5433` URL cannot connect Vercel to this project's local database.
-- `APP_ORIGIN`: the exact app origin, such as `https://your-project.vercel.app`, without a trailing slash. The login and mutation routes require it to match the browser's Origin header. A preview/custom domain needs its matching configuration.
+- `APP_ORIGIN`: the canonical production origin, such as `https://your-project.vercel.app`. Login and mutations also accept the exact same origin that served the request, including a Vercel alias or custom domain; unrelated origins remain rejected.
 
 Do not set either variable with a `NEXT_PUBLIC_` prefix, and do not upload `.env.local` or `test/local-login.txt`. Redeploy after changing Vercel environment variables.
 

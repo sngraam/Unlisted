@@ -47,6 +47,8 @@ npm run db:migrate:deploy
 
 This creates the application tables and Prisma migration history. It does not seed or overwrite product data. Do not run `prisma db push`; committed migrations are the source of truth.
 
+**Amazon category catalogs (2026-09-18):** Migration `20260918000000_marketplace_templates` adds the versioned template table and optional listing/payload references. The hosted database has not yet received this migration. After applying it with the intended Supabase `DIRECT_URL`, run `npm run templates:import:amazon` from `frontend` with the four private XLSM files in `test/amazon-templates/inbox/`. The command prints the selected hostname before importing; it does not alter products or SKU rows. See [the ingestion guide](../test/amazon-templates/README.md).
+
 ## 4. Copy the local demo dataset
 
 The safest path for this existing database is:
@@ -111,7 +113,7 @@ In **Vercel Project → Settings → Environment Variables**, configure Producti
 | ------------------- | ----------------------------------------------------------- |
 | `DATABASE_URL`      | Completed encrypted transaction-pooler URL on port 6543     |
 | `DATABASE_POOL_MAX` | `1`                                                         |
-| `APP_ORIGIN`        | Exact production URL, with `https://` and no trailing slash |
+| `APP_ORIGIN`        | Canonical production URL with `https://`                    |
 
 `DIRECT_URL` is not required by the running app or normal Vercel build because migrations do not run during deployment. Keep it in the trusted migration environment. If you intentionally run migrations from CI later, store it there as a protected secret.
 
